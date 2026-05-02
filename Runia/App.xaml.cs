@@ -45,7 +45,8 @@ namespace Runia
 
                     services.AddSingleton<ImageManager>();
 
-                    // Инфраструктура токенов
+                    // Skin service for downloading and caching skins
+                    services.AddSingleton<ISkinService, SkinService>();
                     services.AddSingleton<ITokenStore>(sp =>
                     {
                         var cfg = sp.GetRequiredService<IAppConfig>();
@@ -95,6 +96,7 @@ namespace Runia
                     services.AddTransient<Runia.ViewModels.Main.SettingsViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SidebarViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.UserViewModel>();
+                    services.AddTransient<Runia.ViewModels.Main.SkinDownloadViewModel>();
 
                     // --- Pages: register as singletons so UI pages are cached and reused ---
                     services.AddSingleton<Runia.Ui.PagesMain.HomePage>();

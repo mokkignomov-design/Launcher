@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,12 +22,19 @@ public class SkinView : Control
     private DateTime _lastMoveTime;
     private double _currentAngleX = 0;
     private double _currentAngleY = 0;
+    private Point _lastMousePos;
 
     public static readonly DependencyProperty SkinSourceProperty = DependencyProperty.Register(
         nameof(SkinSource), typeof(BitmapSource), typeof(SkinView),
         new PropertyMetadata(null, (d, e) => ((SkinView)d).UpdateModel()));
 
+    public static readonly DependencyProperty SkinPathProperty = DependencyProperty.Register(
+        nameof(SkinPath), typeof(string), typeof(SkinView),
+        new PropertyMetadata(null, (d, e) => ((SkinView)d).LoadSkinFromPath((string)e.NewValue)));
+
     public BitmapSource SkinSource { get => (BitmapSource)GetValue(SkinSourceProperty); set => SetValue(SkinSourceProperty, value); }
+
+    public string SkinPath { get => (string)GetValue(SkinPathProperty); set => SetValue(SkinPathProperty, value); }
 
     public SkinView()
     {
@@ -50,8 +59,8 @@ public class SkinView : Control
         _autoRotateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
         _autoRotateTimer.Tick += (s, e) => {
             if (IsMouseCaptured) return;
-            // Если мышь не трогали 4 секунды — начинаем крутить
-            if ((DateTime.Now - _lastMoveTime).TotalSeconds > 4)
+            // Если мышь не трогали 23 секунды — начинаем крутить
+            if ((DateTime.Now - _lastMoveTime).TotalSeconds > 23)
             {
                 _currentAngleY += 0.4;
                 UpdateRotation();
@@ -59,28 +68,71 @@ public class SkinView : Control
         };
         _autoRotateTimer.Start();
 
-        Point lastPos = new Point();
-        MouseDown += (s, e) => { if (e.LeftButton == MouseButtonState.Pressed) { lastPos = e.GetPosition(this); CaptureMouse(); } };
-        MouseMove += (s, e) => {
-            if (IsMouseCaptured)
-            {
-                var pos = e.GetPosition(this);
-                _currentAngleY += pos.X - lastPos.X;
-                // Ограничиваем наклон головы (от -70 до 70 градусов)
-                _currentAngleX = Math.Clamp(_currentAngleX + (pos.Y - lastPos.Y), -70, 70);
-
-                UpdateRotation();
-                lastPos = pos;
-                _lastMoveTime = DateTime.Now;
-            }
-        };
-        MouseUp += (s, e) => ReleaseMouseCapture();
+        SetValue(ClipToBoundsProperty, true);
     }
 
     private void UpdateRotation()
     {
         _yRotation.Quaternion = new Quaternion(new Vector3D(0, 1, 0), _currentAngleY);
         _xRotation.Quaternion = new Quaternion(new Vector3D(1, 0, 0), _currentAngleX);
+    }
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            _lastMousePos = e.GetPosition(this);
+            CaptureMouse();
+            e.Handled = true;
+        }
+        base.OnMouseDown(e);
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed)
+        {
+            var pos = e.GetPosition(this);
+            _currentAngleY += pos.X - _lastMousePos.X;
+            _currentAngleX = Math.Clamp(_currentAngleX + (pos.Y - _lastMousePos.Y), -70, 70);
+
+            UpdateRotation();
+            _lastMousePos = pos;
+            _lastMoveTime = DateTime.Now;
+            e.Handled = true;
+        }
+        base.OnMouseMove(e);
+    }
+
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Released)
+        {
+            ReleaseMouseCapture();
+            e.Handled = true;
+        }
+        base.OnMouseUp(e);
+    }
+
+    private void LoadSkinFromPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return;
+
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(path);
+            bitmap.EndInit();
+            bitmap.Freeze();
+            SkinSource = bitmap;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SkinView] Failed to load skin from {path}: {ex}");
+        }
     }
 
     private void UpdateModel()
