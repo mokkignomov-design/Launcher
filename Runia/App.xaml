@@ -1,0 +1,59 @@
+﻿<Application x:Class="Runia.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Runia"
+             xmlns:auth="clr-namespace:Runia.ViewModels.Auth"
+             xmlns:pagesAuth="clr-namespace:Runia.Ui.PagesUser"
+             >
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 1. ОСНОВА (Цвета и кисти) -->
+                <ResourceDictionary Source="/assets/Themes/DarkTheme.xaml"/>
+
+                <!-- 2. ФУНДАМЕНТ (Размеры, геометрия и шрифты) -->
+                <ResourceDictionary Source="/assets/Resources/Constants.xaml"/>
+                <ResourceDictionary Source="/assets/Resources/CommonResources.xaml"/>
+                <ResourceDictionary Source="/assets/Resources/Typography.xaml"/>
+
+                <!-- 3. КОМПОНЕНТЫ (Используют цвета, константы и текст) -->
+                <ResourceDictionary Source="/assets/Resources/Buttons.xaml"/>
+                <ResourceDictionary Source="/assets/Resources/Inputs.xaml"/>
+                <ResourceDictionary Source="/assets/Resources/Cards.xaml"/>
+                <ResourceDictionary Source="/assets/Resources/ScrollsAndMedia.xaml"/>
+
+
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- ViewModel -> View DataTemplates -->
+            <DataTemplate DataType="{x:Type auth:LoginViewModel}">
+                <pagesAuth:LoginPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type auth:RegisterViewModel}">
+                <pagesAuth:RegisterPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type auth:ForgotPasswordViewModel}">
+                <pagesAuth:ForgotPasswordPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type auth:ResetPasswordViewModel}">
+                <pagesAuth:ResetPasswordPage />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type auth:ConfirmEmailViewModel}">
+                <pagesAuth:ConfirmEmailPage />
+            </DataTemplate>
+
+            <!-- Глобальные ресурсы -->
+            <FontFamily x:Key="MainLogoFont">/assets/Fonts/#Gabriela</FontFamily>
+
+            <!-- Глобальное сглаживание текста -->
+            <Style TargetType="TextBlock">
+                <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+                <Setter Property="UseLayoutRounding" Value="True"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                <Setter Property="FontFamily" Value="Segoe UI, Arial"/>
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

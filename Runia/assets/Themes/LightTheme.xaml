@@ -1,0 +1,31 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#e9e9d2"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#FDFDF7"/>
+
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FDFDF7"/>
+    <SolidColorBrush x:Key="SidebarIconBrush" Color="#7A727D"/>
+    <SolidColorBrush x:Key="SidebarHighlightBrush" Color="#E8B5C0"/>
+    <SolidColorBrush x:Key="TextBrush" Color="#5D535E"/>
+    <SolidColorBrush x:Key="GrayBrush" Color="#7A727D"/>
+    <SolidColorBrush x:Key="DarkGrayBrush" Color="#4A424A"/>
+    <SolidColorBrush x:Key="DarkerGrayBrush" Color="#3D353D"/>
+    <SolidColorBrush x:Key="PlaceholderBrush" Color="#9A9EAB"/>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#DA9EA8"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="#7AAB9B"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#E5DF9E"/>
+    <SolidColorBrush x:Key="HighlightBrush" Color="#E8B5C0"/>
+    <SolidColorBrush x:Key="ServerCardBackgroundBrush" Color="#FDFDF7"/>
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#F1F1E8"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#CADED6"/>
+    <SolidColorBrush x:Key="InputPanelBackgroundBrush" Color="#EAEAE1"/>
+    <SolidColorBrush x:Key="InputPanelBorderBrush" Color="#CADED6"/>
+    <SolidColorBrush x:Key="ServerBackGround" Color="#F4F4EA"/>
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#ECD7D0"/>
+
+    <SolidColorBrush x:Key="NavPanelBackgroundBrush" Color="#DEDECF"/>
+    <SolidColorBrush x:Key="LoadingPanelBackgroundBrush" Color="#BBFFFFFF"/>
+    <BitmapImage x:Key="LoginBackgroundImage" UriSource="/assets/Images/Back2.png" />
+</ResourceDictionary>

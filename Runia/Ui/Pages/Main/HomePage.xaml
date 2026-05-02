@@ -1,0 +1,122 @@
+﻿<UserControl x:Class="Runia.Ui.PagesMain.HomePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="MaskBorder" 
+        Grid.Row="0" 
+        Style="{StaticResource HeroBorderStyle}" 
+        Background="{DynamicResource ServerCardBackgroundBrush}" 
+        CornerRadius="20,20,20,20" 
+        ClipToBounds="True">
+            <Grid>
+              
+
+                <Border Padding="30,20">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Добро пожаловать в Runia" 
+                                   Foreground="{DynamicResource TextBrush}" 
+                                   FontSize="26" FontWeight="Bold"/>
+                        <TextBlock Text="Мир без P2W. Присоединяйся к нашему ламповому сообществу!" 
+                                   Foreground="{DynamicResource GrayBrush}" 
+                                   FontSize="14" Margin="0,5,0,15"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Поддержать проект" Style="{StaticResource PrimaryButtonStyle}" 
+                                    Padding="25,12" Margin="0,0,20,0"/>
+                            <Button Style="{StaticResource SocialButtonStyle}" 
+        Command="{Binding OpenUrlCommand}"
+        CommandParameter="https://discord.gg/vvcC7hDUTH"
+        Margin="5,0">
+                                <Image Source="/assets/Icons/discord.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
+                            <Button Style="{StaticResource SocialButtonStyle}" 
+                                Command="{Binding OpenUrlCommand}"
+                                CommandParameter="https://t.me/santurium"
+                                Margin="5,0">
+                                <Image Source="/assets/Icons/telegramm.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Button>
+                            
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="1" Text="Новости и обновления" Style="{StaticResource HeaderText}" 
+                   FontSize="20" Margin="10,0,0,15"/>
+
+        <ScrollViewer Grid.Row="2" 
+                      x:Name="NewsScrollViewer"
+                      Style="{StaticResource GooglePageScroll}" 
+                      HorizontalScrollBarVisibility="Auto" 
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="NewsScrollViewer_PreviewMouseWheel">
+
+            <ItemsControl ItemsSource="{Binding NewsItems}" VerticalAlignment="Top">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource NewsCardStyle}" Width="340" Margin="10,10,7,10" VerticalAlignment="Top">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" 
+                                              Command="{Binding DataContext.ViewNewsDetailsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 
+                                              CommandParameter="{Binding}"/>
+                            </Border.InputBindings>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="180"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0" CornerRadius="15,15,0,0" ClipToBounds="True">
+                                    <Border.Background>
+                                        <ImageBrush Stretch="UniformToFill">
+                                            <ImageBrush.ImageSource>
+                                                <Binding Path="DisplayImageUrl" FallbackValue="pack://application:,,,/Runia;component/assets/Images/news_default.png" />
+                                            </ImageBrush.ImageSource>
+                                        </ImageBrush>
+                                    </Border.Background>
+                                </Border>
+
+                                <Border Grid.Row="1" Padding="18,15">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" 
+                                                   Foreground="{DynamicResource TextBrush}" 
+                                                   FontSize="18" FontWeight="Bold" 
+                                                   MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Description}" 
+                                                   Style="{StaticResource HintText}" 
+                                                   Margin="0,8,0,15" TextWrapping="Wrap" 
+                                                   MaxHeight="60" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Date, StringFormat='dd.MM.yyyy'}" 
+                                                   Style="{StaticResource HintText}" 
+                                                   FontSize="11" Opacity="0.6"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,118 @@
+﻿<UserControl x:Class="Runia.Ui.PagesMain.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:Runia.ViewModels.Main"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000">
+   <Grid Margin="40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Настройки" FontSize="28" FontWeight="Bold" 
+                Foreground="{DynamicResource TextBrush}" Margin="0,0,0,25" Grid.Row="0"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="ИНТЕРФЕЙС" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="{Binding ThemeModeText}" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="{Binding ThemeHintText}" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding IsDarkMode}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="Полноэкранный режим" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Запуск игры во весь экран" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding IsFullscreen}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="ПОВЕДЕНИЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Консоль Forge" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Показывать логи при запуске" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding ShowConsole}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="Авто-закрытие" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Закрывать лаунчер после старта" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding AutoClose}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="РЕСУРСЫ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <TextBlock Text="Выделяемая память" 
+                           Style="{DynamicResource HeaderText}"/>
+                            <TextBlock Text="{Binding ElementName=MemorySlider, Path=Value, StringFormat={}{0} ГБ}"
+                           Style="{DynamicResource MemoryValueStyle}"/>
+                        </Grid>
+
+                        <Slider x:Name="MemorySlider" 
+                    Minimum="2" 
+                    Maximum="16" 
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    Style="{DynamicResource ModernSliderStyle}"
+                    Value="{Binding RamAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="СИСТЕМА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <TextBlock Text="JVM-аргументы" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
+                        <TextBox Text="{Binding JvmArgs, UpdateSourceTrigger=PropertyChanged}" 
+                                 Tag="Аргументы запуска (напр. -Xmx...)"
+                                 Height="60" TextWrapping="Wrap" Style="{DynamicResource ModernTextBox}" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Путь к файлам" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Text="{Binding GamePath}" Tag="Путь не выбран..." IsReadOnly="True" Style="{DynamicResource ModernTextBox}"/>
+
+                            <Button Command="{Binding BrowsePathCommand}" 
+                                    Content="Обзор" 
+                                    Grid.Column="1" 
+                                    Margin="8,0,0,0" 
+                                    Style="{DynamicResource PrimaryButtonStyle}" 
+                                    Height="35" Width="80"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

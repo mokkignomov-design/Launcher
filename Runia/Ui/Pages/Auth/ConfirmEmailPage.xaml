@@ -1,0 +1,118 @@
+﻿<UserControl x:Class="Runia.Ui.PagesUser.ConfirmEmailPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Runia.Ui.PagesUser"
+             xmlns:vm="clr-namespace:Runia.ViewModels.Auth"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="450">
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+        <StackPanel Width="300">
+            <TextBlock Text="Подтверждение почты"
+                       TextAlignment="Center"         
+                       FontSize="20"
+                       FontFamily="/assets/Fonts/#Haipapikuseru Hypereffort"
+                       Foreground="{DynamicResource PrimaryBrush}"
+                       Margin="0,0,0,10"/>
+
+            <TextBlock Text="Мы отправили 6-значный код на почту" 
+                       Foreground="{DynamicResource TextBrush}"
+                       TextWrapping="Wrap" 
+                       TextAlignment="Center" 
+                       FontSize="13"
+                       Margin="0,0,0,25"
+                       Opacity="0.8"/>
+
+            <Border Margin="0,0,0,12" CornerRadius="8"
+                    Background="{DynamicResource InputPanelBackgroundBrush}"
+                    BorderBrush="{DynamicResource InputPanelBorderBrush}" 
+                    BorderThickness="1">
+                <Grid Margin="10,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="✉" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Email}" 
+                               Foreground="{DynamicResource TextBrush}" 
+                               Margin="10,0,0,0" VerticalAlignment="Center" Opacity="0.7"/>
+                </Grid>
+            </Border>
+
+            <Border Margin="0,0,0,20" CornerRadius="8"
+                    Background="{DynamicResource InputPanelBackgroundBrush}"
+                    BorderBrush="{DynamicResource InputPanelBorderBrush}" 
+                    BorderThickness="1">
+                <Grid>
+                    <TextBox x:Name="CodeText" 
+                             Background="Transparent"
+                             Foreground="{DynamicResource PrimaryBrush}"
+                             BorderThickness="0"
+                             Padding="0,10"
+                             FontSize="24"
+                             FontWeight="Bold"
+                             MaxLength="6"
+                             TextAlignment="Center"
+                             Tag="123456"
+                             Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Text="000000"
+                               Foreground="{DynamicResource PlaceholderBrush}"
+                               IsHitTestVisible="False"
+                               FontSize="24"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Opacity="0.3">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Code}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <Button Content="Подтвердить"
+                    Style="{DynamicResource PrimaryButtonStyle}"
+                    Command="{Binding ConfirmCommand}"
+                    Height="42" />
+
+            <Grid Margin="0,20,0,0">
+                <Button Style="{StaticResource TransparentButtonStyle}" 
+                        Command="{Binding ResendCommand}"
+                        HorizontalAlignment="Left">
+                    <TextBlock Text="Переотправить" Foreground="{DynamicResource SecondaryBrush}" FontSize="11"/>
+                </Button>
+                <Button Style="{StaticResource TransparentButtonStyle}" 
+                        Command="{Binding BackToLoginCommand}"
+                        HorizontalAlignment="Right">
+                    <TextBlock Text="Ко входу" Foreground="{DynamicResource SecondaryBrush}" FontSize="11"/>
+                </Button>
+            </Grid>
+
+            <ProgressBar IsIndeterminate="True" 
+                         Height="2" 
+                         Margin="0,15,0,0"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="{DynamicResource PrimaryBrush}">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
+        </StackPanel>
+    </Grid>
+</UserControl>

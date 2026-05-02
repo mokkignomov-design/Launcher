@@ -1,0 +1,126 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="ModernScrollBarStyle" TargetType="{x:Type ScrollBar}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Width" Value="10"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <Grid x:Name="Bg" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
+                            <Track.Thumb>
+                                <Thumb x:Name="Thumb">
+                                    <Thumb.Style>
+                                        <Style TargetType="{x:Type Thumb}">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type Thumb}">
+                                                        <Border x:Name="thumbBorder" 
+                                                            Width="6"
+                                                            Background="#40FFFFFF" 
+                                                            CornerRadius="3" 
+                                                            HorizontalAlignment="Center"/>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="true">
+                                                                <Setter TargetName="thumbBorder" Property="Background" Value="#80FFFFFF"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Thumb.Style>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="GooglePageScroll" TargetType="{x:Type ScrollViewer}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                    <Grid x:Name="Grid" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" 
+                                           Grid.Column="0"
+                                           CanContentScroll="{TemplateBinding CanContentScroll}" 
+                                           Margin="{TemplateBinding Padding}"/>
+
+                        <ScrollBar x:Name="PART_VerticalScrollBar" 
+          Grid.Column="1"
+          Width="6" 
+          HorizontalAlignment="Right"
+          Margin="0,20,10,0" 
+          Style="{StaticResource ModernScrollBarStyle}"
+          Maximum="{TemplateBinding ScrollableHeight}" 
+          Minimum="0" 
+          Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" 
+          Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" 
+          ViewportSize="{TemplateBinding ViewportHeight}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SanctumScrollViewer" TargetType="ScrollViewer">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollViewer">
+                    <Grid>
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" 
+                                              CanContentScroll="{TemplateBinding CanContentScroll}"/>
+                        <ScrollBar x:Name="PART_VerticalScrollBar"
+                                 HorizontalAlignment="Right"
+                                 Value="{TemplateBinding VerticalOffset}"
+                                 Maximum="{TemplateBinding ScrollableHeight}"
+                                 ViewportSize="{TemplateBinding ViewportHeight}"
+                                 Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                 Width="6" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ExponentialEase x:Key="MainEase" EasingMode="EaseOut" Exponent="5"/>
+
+    <Style x:Key="BreathingRobotStyle" TargetType="Image">
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="Stretch" Value="UniformToFill"/>
+        <Setter Property="Opacity" Value="0.35"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard Name="RobotBreathAnim">
+                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).ScaleX"
+                                         To="1.1" Duration="0:0:6" EasingFunction="{StaticResource MainEase}"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(RenderTransform).ScaleY"
+                                         To="1.1" Duration="0:0:6" EasingFunction="{StaticResource MainEase}"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <StopStoryboard BeginStoryboardName="RobotBreathAnim"/>
+                </Trigger.ExitActions>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

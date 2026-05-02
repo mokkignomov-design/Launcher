@@ -1,0 +1,6 @@
+.vs/
+*.zip
+*.user
+bin/
+obj/
+Runia.sln.DotSettings.user
