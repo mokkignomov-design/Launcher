@@ -18,9 +18,28 @@ namespace Runia.ViewModels.Main
         private readonly ILogger<ServerDetailsViewModel> _logger = logger;
 
         [RelayCommand]
-        private async Task JoinServer()
+       
+        private async Task LaunchAsync(CancellationToken cancellationToken)
         {
-            await LaunchAsync(CancellationToken.None);
+            if (string.IsNullOrWhiteSpace(ServerName))
+            {
+                _dialog.ShowError("Сервер не выбран");
+                return;
+            }
+
+            try
+            {
+                // Достаем главную вью-модель из DI
+                if (App.Services?.GetService(typeof(Runia.ViewModels.Windows.MainWindowViewModel)) is Runia.ViewModels.Windows.MainWindowViewModel mainVm)
+                {
+                    await mainVm.StartGameGlobalAsync(ServerName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка запуска {ServerName}", ServerName);
+                _dialog.ShowError($"Ошибка: {ex.Message}");
+            }
         }
 
         [ObservableProperty]
@@ -116,40 +135,9 @@ namespace Runia.ViewModels.Main
         private bool isLaunching;
 
         [ObservableProperty]
-        private string progress = string.Empty;
+        private string progress = "ИГРАТЬ";
 
-        [RelayCommand]
-        private async Task LaunchAsync(CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(ServerName))
-            {
-                _dialog.ShowError("Сервер не выбран");
-                return;
-            }
 
-            if (IsLaunching) return;
-
-            IsLaunching = true;
-            Progress = "ПОДГОТОВКА..."; 
-
-            try
-            {
-                var logProgress = new Progress<string>(msg => Progress = msg.ToUpper());
-                await _launcher.LaunchPackAsync(ServerName, logProgress, cancellationToken);
-
-                Progress = "ИГРА ЗАПУЩЕНА";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Ошибка запуска {ServerName}", ServerName);
-                _dialog.ShowError($"Ошибка: {ex.Message}");
-                Progress = "ПОПРОБОВАТЬ СНОВА";
-            }
-            finally
-            {
-                IsLaunching = false;
-            }
-        }
 
         public void SetServer(string? serverName)
         {

@@ -1,11 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Runia.Services.Common;
+using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Core.Navigation;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace Runia.ViewModels.Main
@@ -15,53 +18,95 @@ namespace Runia.ViewModels.Main
         private readonly IDialogService _dialog;
         private readonly INavigationService _nav;
         private readonly ISkinService _skinService;
+        private readonly IAppConfig _config;
+        private readonly ILogger<UserViewModel> _logger;
 
-        public UserViewModel(IDialogService dialog, INavigationService nav, ISkinService skinService)
+        public UserViewModel(
+            IDialogService dialog,
+            INavigationService nav,
+            ISkinService skinService,
+            IAppConfig config,
+            ILogger<UserViewModel> logger)
         {
             _dialog = dialog;
             _nav = nav;
             _skinService = skinService;
-            Debug.WriteLine("[UserViewModel] Constructor called");
-            _ = InitializeLastSkinAsync();
+            _config = config;
+            _logger = logger;
+
+            _logger.LogInformation("[UserViewModel] Initializing...");
+
+            // Запускаем инициализацию без блокировки конструктора
+            _ = InitializeSkinDataAsync();
         }
 
-        [ObservableProperty]
-        private string username = "Гость";
+        // --- Данные пользователя ---
+        [ObservableProperty] private string username = "testuser123"; // В будущем тянуть из IAuthService
+        [ObservableProperty] private string email = "g******2@bk.ru";
+        [ObservableProperty] private string regDate = "01.02.2024";
+        [ObservableProperty] private string balance = "25 791.00 AP";
 
-        [ObservableProperty]
-        private BitmapSource? skinSource;
+        // --- Состояние скина ---
+        [ObservableProperty] private BitmapSource? skinSource;
+        [ObservableProperty] private string skinPath = string.Empty;
+        [ObservableProperty] private bool isLoadingSkin;
 
-        [ObservableProperty]
-        private string skinPath = string.Empty;
+        // --- Состояние вкладок (только для переключения ВНУТРИ страницы User) ---
+        [ObservableProperty] private int selectedTabIndex = 0;
 
-        [ObservableProperty]
-        private bool isLoadingSkin;
-
-        private async Task InitializeLastSkinAsync()
+        /// <summary>
+        /// Умная инициализация: API -> Локальный кэш -> Пусто
+        /// </summary>
+        private async Task InitializeSkinDataAsync()
         {
             try
             {
+                // 1. Пробуем получить актуальную инфу с сервера[cite: 9]
+                var info = await _skinService.GetSkinInfoAsync(Username);
+                if (info != null && !string.IsNullOrEmpty(info.Url))
+                {
+                    // Собираем полный URL, используя базовый адрес из конфига
+                    string fullUrl = info.Url.StartsWith("http")
+                        ? info.Url
+                        : $"{_config.ApiBaseUrl.TrimEnd('/')}/{info.Url.TrimStart('/')}";
+
+                    var localPath = await _skinService.GetSkinAsync(Username, fullUrl);
+                    if (localPath != null)
+                    {
+                        SkinPath = localPath;
+                        UpdateSkin(localPath);
+                        await _skinService.SetLastSelectedSkinAsync(Username, localPath);
+                        return;
+                    }
+                }
+
+                // 2. Если API недоступно, берем последний успешно загруженный скин
                 var lastSkin = await _skinService.GetLastSelectedSkinAsync();
                 if (lastSkin != null && File.Exists(lastSkin.LocalPath))
                 {
-                    Username = lastSkin.Username;
                     SkinPath = lastSkin.LocalPath;
                     UpdateSkin(lastSkin.LocalPath);
-                    Debug.WriteLine($"[UserViewModel] Loaded last selected skin: {lastSkin.Username}");
+                    _logger.LogInformation("Loaded skin from local history: {Path}", lastSkin.LocalPath);
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[UserViewModel] Failed to load last skin: {ex}");
+                _logger.LogError(ex, "Failed to initialize skin data");
             }
         }
 
+        /// <summary>
+        /// Команда загрузки нового скина. 
+        /// В XAML привязка: Command="{Binding LoadSkinCommand}"
+        /// </summary>
         [RelayCommand]
         private async Task LoadSkinAsync()
         {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Minecraft Skin (*.png)|*.png";
-            openFileDialog.Title = "Выберите файл скина";
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Minecraft Skin (*.png)|*.png",
+                Title = "Выберите файл скина (64x64)"
+            };
 
             if (openFileDialog.ShowDialog() != true)
                 return;
@@ -71,36 +116,25 @@ namespace Runia.ViewModels.Main
             {
                 string filePath = openFileDialog.FileName;
 
-                if (!File.Exists(filePath))
+                // Загружаем на сервер через сервис
+                bool success = await _skinService.UploadSkinAsync(filePath, Username);
+
+                if (success)
                 {
-                    _dialog.ShowError("Файл скина не найден", "Ошибка");
-                    return;
-                }
-
-                // Копируем скин в кэш с именем пользователя
-                var localPath = await _skinService.GetSkinAsync(Username, $"file:///{filePath}");
-
-                if (localPath != null && File.Exists(localPath))
-                {
-                    SkinPath = localPath;
-                    await _skinService.SetLastSelectedSkinAsync(Username, localPath);
-                    UpdateSkin(localPath);
-
-                    // TODO: Загрузить скин на бэк
-                    // await UploadSkinToBackendAsync(localPath);
-
-                    Debug.WriteLine($"[UserViewModel] Successfully loaded skin from file: {filePath}");
-                    _dialog.ShowError("Скин успешно загружен!", "Успех");
+                    SkinPath = filePath;
+                    UpdateSkin(filePath);
+                    await _skinService.SetLastSelectedSkinAsync(Username, filePath);
+                    _dialog.ShowMessage("Скин успешно обновлен!", "Успех");
                 }
                 else
                 {
-                    _dialog.ShowError("Не удалось загрузить скин", "Ошибка");
+                    _dialog.ShowError("Сервер отклонил файл. Проверьте формат PNG и размер.", "Ошибка");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[UserViewModel] Error loading skin: {ex}");
-                _dialog.ShowError($"Ошибка: {ex.Message}", "Ошибка загрузки скина");
+                _logger.LogError(ex, "Skin upload command failed");
+                _dialog.ShowError("Не удалось загрузить скин: " + ex.Message, "Ошибка");
             }
             finally
             {
@@ -110,43 +144,24 @@ namespace Runia.ViewModels.Main
 
         private void UpdateSkin(string path)
         {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+
             try
             {
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 bitmap.UriSource = new Uri(path, UriKind.RelativeOrAbsolute);
+                // Важно для WPF, чтобы файл не блокировался и обновлялся в UI сразу
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                 bitmap.EndInit();
+                bitmap.Freeze(); // Для безопасности потоков
 
-                this.SkinSource = bitmap;
+                SkinSource = bitmap;
             }
             catch (Exception ex)
             {
-                _dialog.ShowError($"Ошибка: {ex.Message}", "Ошибка загрузки скина");
-            }
-        }
-
-        /// <summary>
-        /// TODO: Загрузить скин на бэк. Используйте httpClient для отправки файла.
-        /// Пример endpoint: POST /api/user/skin
-        /// </summary>
-        private async Task UploadSkinToBackendAsync(string localPath)
-        {
-            try
-            {
-                // Реализация для загрузки на бэк
-                // using var content = new MultipartFormDataContent();
-                // var fileContent = new ByteArrayContent(File.ReadAllBytes(localPath));
-                // fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-                // content.Add(fileContent, "file", Path.GetFileName(localPath));
-                // var response = await httpClient.PostAsync("/api/user/skin", content);
-
-                Debug.WriteLine("[UserViewModel] Skin uploaded to backend");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[UserViewModel] Error uploading skin to backend: {ex}");
+                _logger.LogError(ex, "Failed to create BitmapSource from {Path}", path);
             }
         }
     }

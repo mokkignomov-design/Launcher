@@ -4,9 +4,11 @@ using Runia.Domain.Models;
 using Runia.Services.Common;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Core.Navigation;
+using Runia.Services.Core.Launcher; // Добавил для лаунчера
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Runia.ViewModels.Main
@@ -16,12 +18,14 @@ namespace Runia.ViewModels.Main
         private readonly INavigationService navigationService;
         private readonly IDialogService dialogService;
         private readonly IAppConfig _config;
+        private readonly LauncherService _launcher; // Добавляем сервис запуска
 
-        public ServerViewModel(INavigationService nav, IDialogService dialog, IAppConfig config)
+        public ServerViewModel(INavigationService nav, IDialogService dialog, IAppConfig config, LauncherService launcher)
         {
             navigationService = nav;
             dialogService = dialog;
             _config = config;
+            _launcher = launcher; // Инициализируем
 
             Debug.WriteLine("[ServerViewModel] Constructor called");
             LoadServers();
@@ -37,6 +41,26 @@ namespace Runia.ViewModels.Main
         [ObservableProperty]
         private bool isLoading;
 
+        // Команда для запуска игры ПРЯМО из списка
+        [RelayCommand]
+        private async Task JoinServer(ServerPack server)
+        {
+            if (server == null) return;
+
+            try
+            {
+                // Достаем главную вью-модель из DI контейнера
+                if (App.Services?.GetService(typeof(Runia.ViewModels.Windows.MainWindowViewModel)) is Runia.ViewModels.Windows.MainWindowViewModel mainVm)
+                {
+                    await mainVm.StartGameGlobalAsync(server.Title);
+                }
+            }
+            catch (Exception ex)
+            {
+                dialogService?.ShowError($"Не удалось запустить {server.Title}: {ex.Message}", "Ошибка запуска");
+            }
+        }
+
         private async void LoadServers()
         {
             Debug.WriteLine("[ServerViewModel] Loading servers from config...");
@@ -44,15 +68,11 @@ namespace Runia.ViewModels.Main
             try
             {
                 var packs = await _config.GetServersAsync();
-
                 Servers.Clear();
-
                 foreach (var pack in packs)
                 {
-                    // Directly use domain ServerPack as the item source for UI
                     Servers.Add(pack);
                 }
-                Debug.WriteLine($"[ServerViewModel] Loaded {Servers.Count} servers.");
             }
             catch (Exception ex)
             {
@@ -76,7 +96,5 @@ namespace Runia.ViewModels.Main
                 navigationService?.NavigateTo(detailsVm);
             }
         }
-
-       
     }
 }

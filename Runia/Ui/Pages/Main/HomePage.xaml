@@ -44,7 +44,7 @@
                             </Button>
                             <Button Style="{StaticResource SocialButtonStyle}" 
                                 Command="{Binding OpenUrlCommand}"
-                                CommandParameter="https://t.me/santurium"
+                                CommandParameter="https://t.me/Runia_MC"
                                 Margin="5,0">
                                 <Image Source="/assets/Icons/telegramm.png" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Button>

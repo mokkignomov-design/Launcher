@@ -35,6 +35,10 @@ namespace Runia.ViewModels.Main
         private void GoHome()
         {
             if (_nav.CurrentViewModel is HomeViewModel) return;
+            IsHomeSelected = true;
+            IsProfileSelected = false;
+            IsServersSelected = false;
+            IsSettingsSelected = false;
             _nav.NavigateTo<HomeViewModel>();
         }
 
@@ -43,6 +47,11 @@ namespace Runia.ViewModels.Main
         {
             try
             {
+                if (_nav.CurrentViewModel is UserViewModel) return;
+                IsHomeSelected = false;
+                IsProfileSelected = true;
+                IsServersSelected = false;
+                IsSettingsSelected = false;
                 _nav.NavigateTo<UserViewModel>();
             }
             catch (Exception ex) { Debug.WriteLine($"[Sidebar.GoProfile] Exception: {ex}"); }
@@ -53,6 +62,11 @@ namespace Runia.ViewModels.Main
         {
             try
             {
+                if (_nav.CurrentViewModel is ServerViewModel) return;
+                IsHomeSelected = false;
+                IsProfileSelected = false;
+                IsServersSelected = true;
+                IsSettingsSelected = false;
                 _nav.NavigateTo<ServerViewModel>();
             }
             catch (Exception ex) { Debug.WriteLine($"[Sidebar.GoServers] Exception: {ex}"); }
@@ -63,6 +77,11 @@ namespace Runia.ViewModels.Main
         {
             try
             {
+                if (_nav.CurrentViewModel is SettingsViewModel) return;
+                IsHomeSelected = false;
+                IsProfileSelected = false;
+                IsServersSelected = false;
+                IsSettingsSelected = true;
                 _nav.NavigateTo<SettingsViewModel>();
             }
             catch (Exception ex) { Debug.WriteLine($"[Sidebar.GoSettings] Exception: {ex}"); }
@@ -73,12 +92,18 @@ namespace Runia.ViewModels.Main
         #region Сессия
 
         [RelayCommand]
-        private void Logout()
+        private async Task Logout() // Изменили void на Task
         {
             try
             {
-                Debug.WriteLine("[Sidebar] Logout");
-                _auth.Logout();
+                Debug.WriteLine("[Sidebar] Logout initiated");
+
+                // ЯВНО ждем завершения очистки всех токенов и сессии
+                await _auth.LogoutAsync();
+
+                Debug.WriteLine("[Sidebar] Tokens cleared, opening login window");
+
+                // Только после успешной очистки открываем окно входа
                 _dialog.ShowLoginWindow();
             }
             catch (Exception ex)

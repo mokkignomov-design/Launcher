@@ -5,21 +5,10 @@ using Runia.Services.Auth;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Installers;
 using System.Diagnostics;
+using System.Windows;
 
 namespace Runia.Services.Core.Launcher
 {
-    /// <summary>
-    /// LauncherService запускает игру с защитой аутентификации.
-    /// 
-    /// ЗАЩИТА БЕЗОПАСНОСТИ:
-    /// 1. Username получается ТОЛЬКО из AuthService.CurrentUser, который устанавливается после успешной авторизации
-    /// 2. Username никогда не редактируется пользователем через SettingsPage или другой UI
-    /// 3. Username хранится в защищенном хранилище (SecureTokenStore) вместе с токенами при входе
-    /// 4. Если AuthService.CurrentUser равен null, используется значение по умолчанию "Player" (fallback)
-    /// 5. Все критические данные защищены DPAPI на уровне ОС
-    /// 
-    /// Это гарантирует, что пользователь не может запустить игру под чужим никнеймом без получения валидного токена с сервера.
-    /// </summary>
     public class LauncherService(JavaManager javaManager, ForgeManager forgeManager, ModPackManager modPackManager, IAppConfig config, AuthService authService)
     {
         public event Action? OnGameStarted;
@@ -35,11 +24,14 @@ namespace Runia.Services.Core.Launcher
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
+
                 var servers = await _config.GetServersAsync();
                 var currentServer = servers.FirstOrDefault(s => s.Title == packName)
                     ?? throw new Exception($"Сервер {packName} не найден");
 
-             
+                ct.ThrowIfCancellationRequested();
+
                 int ram = _config.RamAmount;
                 string instancePath = VersionsManager.GetVersionPath(packName);
 
@@ -48,22 +40,30 @@ namespace Runia.Services.Core.Launcher
 
                 if (!string.IsNullOrWhiteSpace(currentServer.ZipUrl))
                 {
+                    ct.ThrowIfCancellationRequested();
                     logProgress?.Report("Checking modpack...");
-                    var downloadProgress = new Progress<double>(p => logProgress?.Report($"Downloading: {p:P0}"));
+                    var downloadProgress = new Progress<double>(p => logProgress?.Report($"Downloading: {p:F0}%"));
                     await _modPackManager.InstallModpackAsync(currentServer.ZipUrl, instancePath, downloadProgress, ct);
                 }
+
+                ct.ThrowIfCancellationRequested();
 
                 var launcher = new MinecraftLauncher(new MinecraftPath(VersionsManager.Root));
 
                 logProgress?.Report("Installing base Minecraft...");
                 await launcher.InstallAsync(currentServer.McVersion, ct);
 
+                ct.ThrowIfCancellationRequested();
+
                 string versionId = currentServer.McVersion;
                 if (!string.IsNullOrWhiteSpace(currentServer.ForgeVersion))
                 {
+                    ct.ThrowIfCancellationRequested();
                     logProgress?.Report("Checking Forge...");
                     versionId = await _forgeManager.InstallForgeAsync(currentServer.McVersion, currentServer.ForgeVersion, logProgress, ct);
                 }
+
+                ct.ThrowIfCancellationRequested();
 
                 string javaPath = await _javaManager.GetJavaPathAsync() ?? throw new Exception("Java not found");
 
@@ -87,6 +87,8 @@ namespace Runia.Services.Core.Launcher
                 logProgress?.Report("Creating process...");
                 var process = await launcher.CreateProcessAsync(versionId, launchOption);
 
+                ct.ThrowIfCancellationRequested();
+
                 process.StartInfo.Arguments = ConfigureArguments(process.StartInfo.Arguments, instancePath);
                 process.StartInfo.WorkingDirectory = instancePath;
 
@@ -98,18 +100,62 @@ namespace Runia.Services.Core.Launcher
                     logProgress?.Report("Game started");
                     OnGameStarted?.Invoke();
 
+                    if (Runia.Properties.Settings.Default.AutoCloseLauncher)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var mainWin = Application.Current.Windows.OfType<Runia.Ui.Windows.MainWindow>().FirstOrDefault();
+                            mainWin?.Hide();
+                        });
+                    }
+
                     _ = Task.Run(async () =>
                     {
-                        try { await process.WaitForExitAsync(ct); }
-                        finally { OnGameExited?.Invoke(); }
+                        try
+                        {
+                            await process.WaitForExitAsync(ct);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            try
+                            {
+                                if (!process.HasExited) process.Kill(entireProcessTree: true);
+                            }
+                            catch { }
+                        }
+                        finally
+                        {
+                            OnGameExited?.Invoke();
+
+                            if (Runia.Properties.Settings.Default.AutoCloseLauncher)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    var mainWin = Application.Current.Windows.OfType<Runia.Ui.Windows.MainWindow>().FirstOrDefault();
+                                    if (mainWin != null)
+                                    {
+                                        mainWin.Show();
+                                        mainWin.WindowState = WindowState.Normal;
+                                        mainWin.Activate();
+                                    }
+                                });
+                            }
+                        }
                     }, ct);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[LauncherService] Launch cancelled");
+                logProgress?.Report("Отмена...");
+                throw;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[ERROR] {ex}");
                 logProgress?.Report($"Ошибка: {ex.Message}");
                 OnGameExited?.Invoke();
+                throw;
             }
         }
 

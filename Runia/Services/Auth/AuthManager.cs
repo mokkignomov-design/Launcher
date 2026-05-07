@@ -25,7 +25,7 @@ namespace Runia.Services.Auth
         public string? LastRequestedResetEmail { get; private set; }
 
         /// <summary>
-        /// Безопасное извлечение username из JWT токена.
+        /// Безопасное извлечение username из JWT токена. пока что не используется нигде, но может пригодиться для отображения имени пользователя в оффлайн-режиме или при загрузке токенов из хранилища.
         /// </summary>
         private string? ExtractUsernameFromToken(string? token)
         {
@@ -37,7 +37,6 @@ namespace Runia.Services.Auth
                 if (parts.Length != 3) return null;
 
                 var payload = parts[1];
-                // Добавляем padding если необходимо
                 var padding = 4 - (payload.Length % 4);
                 if (padding < 4) payload += new string('=', padding);
 
@@ -69,7 +68,6 @@ namespace Runia.Services.Auth
                 AccessToken = res.Data.AccessToken;
                 RefreshToken = res.Data.RefreshToken;
 
-                // Сохраняем username вместе с токеном в защищенное хранилище
                 await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, true, username);
 
                 CurrentUser = new UserProfile { Name = username, Rank = "Player", Balance = 0 };
@@ -83,7 +81,6 @@ namespace Runia.Services.Auth
                 if (!string.IsNullOrWhiteSpace(access))
                 {
                     AccessToken = access;
-                    // Используем сохраненный username, а не передаваемый пользователем
                     CurrentUser = new UserProfile { Name = storedUsername ?? "Player", Rank = "Player", Balance = 0 };
                     return AuthResult.OfflineSuccess;
                 }
@@ -175,7 +172,6 @@ namespace Runia.Services.Auth
 
             AccessToken = access;
             RefreshToken = refresh;
-            // Используем сохраненный username из защищенного хранилища
             CurrentUser = new UserProfile { Name = storedUsername ?? "Player", Rank = "Player", Balance = 0 };
             return AuthResult.Success;
         }
@@ -184,13 +180,14 @@ namespace Runia.Services.Auth
 
         public async Task LogoutAsync()
         {
+
             AccessToken = null;
             RefreshToken = null;
             CurrentUser = null;
             CachedServers = [];
+
             await _tokenStore.ClearAsync();
         }
-
         public void SaveTokens(bool rememberMe) => _ = SaveTokensAsync(rememberMe);
         public void Logout() => _ = LogoutAsync();
     }

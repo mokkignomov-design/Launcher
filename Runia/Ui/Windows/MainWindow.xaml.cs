@@ -1,6 +1,7 @@
 using Runia.Services.Core.Navigation;
 using Runia.Ui.PagesMain;
 using Runia.ViewModels.Main;
+using Runia.ViewModels.Windows;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
@@ -16,6 +17,11 @@ namespace Runia.Ui.Windows
             InitializeComponent();
             Loaded += OnWindowLoaded;
             Activated += OnWindowActivated;
+            // Устанавливаем DataContext для главного окна
+            if (App.Services?.GetService(typeof(MainWindowViewModel)) is MainWindowViewModel mainVm)
+            {
+                DataContext = mainVm;
+            }
         }
 
         private void OnWindowActivated(object? sender, EventArgs e)

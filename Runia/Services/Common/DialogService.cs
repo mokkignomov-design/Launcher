@@ -7,6 +7,9 @@ using System.Windows.Controls;
 
 namespace Runia.Services.Common
 {
+    /// </summary>
+    /// Сервис для отображения диалогов и управления окнами приложения.
+    /// </summary>
     public class DialogService : IDialogService
     {
         public void ShowMessage(string message, string title = "Сообщение")
@@ -15,9 +18,10 @@ namespace Runia.Services.Common
 
             Application.Current.Dispatcher.Invoke(() =>
             {
+                var mainWindow = Application.Current.MainWindow;
                 var msgWin = new MessageWindow(message, title)
                 {
-                    Owner = Application.Current.MainWindow 
+                    Owner = (mainWindow != null && mainWindow.IsLoaded) ? mainWindow : null
                 };
                 msgWin.ShowDialog();
             });
@@ -29,9 +33,10 @@ namespace Runia.Services.Common
 
             Application.Current.Dispatcher.Invoke(() =>
             {
+                var mainWindow = Application.Current.MainWindow;
                 var msgWin = new MessageWindow(message, title)
                 {
-                    Owner = Application.Current.MainWindow
+                    Owner = (mainWindow != null && mainWindow.IsLoaded) ? mainWindow : null
                 };
                 msgWin.ShowDialog();
             });
@@ -52,7 +57,7 @@ namespace Runia.Services.Common
         public void ShowMainWindow()
         {
             var existing = Application.Current.Windows.OfType<Ui.Windows.MainWindow>().FirstOrDefault();
-            if (existing != null)
+            if (existing != null && existing.IsLoaded)
             {
                 Debug.WriteLine("[DialogService] MainWindow already opened - activating existing.");
                 existing.Activate();

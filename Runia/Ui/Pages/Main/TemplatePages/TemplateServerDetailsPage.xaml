@@ -78,7 +78,7 @@
                             Height="65" Width="250" 
                             FontSize="20" FontWeight="Bold"
                             HorizontalAlignment="Left"
-                            Command="{Binding JoinServerCommand}"/>
+                            Command="{Binding LaunchCommand}"/>
                 </StackPanel>
 
             </StackPanel>

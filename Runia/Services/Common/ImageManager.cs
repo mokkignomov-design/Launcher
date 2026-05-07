@@ -9,6 +9,9 @@ using System.Net.Http;
 
 namespace Runia.Services.Common
 {
+    /// <summary>
+    /// Сервис для управления загрузкой и кэшированием изображений.
+    /// </summary>
     public class ImageManager : IDisposable
     {
         private readonly string _cachePath;

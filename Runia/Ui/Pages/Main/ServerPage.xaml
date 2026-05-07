@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:vm="clr-namespace:Runia.ViewModels.Main"
              UseLayoutRounding="True"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000">
@@ -15,9 +14,7 @@
             ClipToBounds="True">
 
         <Grid>
-            <ScrollViewer Style="{StaticResource GooglePageScroll}" 
-                          VerticalScrollBarVisibility="Auto">
-
+            <ScrollViewer Style="{StaticResource GooglePageScroll}" VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="ServersList" Padding="0" ItemsSource="{Binding Servers}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -27,9 +24,10 @@
 
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource ServerCardStyle}" Margin="10">
+                            <Border Style="{StaticResource ServerCardStyle}" Margin="10" Cursor="Hand">
+                                <!-- Фикс: используем MouseLeftButtonUp вместо PreviewDown -->
                                 <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                    <i:EventTrigger EventName="MouseLeftButtonUp">
                                         <i:InvokeCommandAction Command="{Binding DataContext.SelectServerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                                CommandParameter="{Binding}"/>
                                     </i:EventTrigger>
@@ -41,12 +39,14 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
+                                    <!-- Шапка карточки -->
                                     <Border Grid.Row="0" CornerRadius="20,20,0,0" ClipToBounds="True">
-                                        <!-- Use ImageBrush as Background to preserve rounded corners; bind via Ancestor ContentPresenter so Freezable resolves DataContext -->
                                         <Border.Background>
                                             <ImageBrush Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality">
                                                 <ImageBrush.ImageSource>
-                                                    <Binding Path="DataContext.DisplayImageUrl" RelativeSource="{RelativeSource AncestorType=ContentPresenter}" FallbackValue="pack://application:,,,/Runia;component/assets/Images/news_default.png" />
+                                                    <Binding Path="DataContext.DisplayImageUrl" 
+                                                             RelativeSource="{RelativeSource AncestorType=ContentPresenter}" 
+                                                             FallbackValue="pack://application:,,,/Runia;component/assets/Images/news_default.png" />
                                                 </ImageBrush.ImageSource>
                                             </ImageBrush>
                                         </Border.Background>
@@ -56,10 +56,11 @@
                                         </Border>
                                     </Border>
 
+                                    <!-- Инфо зона -->
                                     <Border Grid.Row="1" Padding="15,15,15,18">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Title}" 
-                                                       Foreground="{DynamicResource TextBrush}" 
+                                                       Style="{StaticResource HeaderText}"
                                                        FontSize="17" 
                                                        FontWeight="Bold"
                                                        TextTrimming="CharacterEllipsis"/>
@@ -73,13 +74,21 @@
                                                        TextTrimming="CharacterEllipsis"/>
 
                                             <DockPanel LastChildFill="False" Margin="0,75,0,0">
+                                                <!-- КНОПКА "ИГРАТЬ" -->
                                                 <Button DockPanel.Dock="Left" 
                                                         Content="Играть" 
                                                         Style="{StaticResource PrimaryButtonStyle}" 
-                                                        Padding="18,7" 
-                                                        FontSize="15"
+                                                        Padding="18,7" FontSize="15"
                                                         Command="{Binding DataContext.JoinServerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"/>
+                                                        CommandParameter="{Binding}"
+                                                        Focusable="False">
+                                                    <!-- Важно: e.Handled = true, чтобы клик не ушел на саму карточку -->
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                                            <i:ChangePropertyAction PropertyName="Tag" Value="Handled"/>
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </Button>
 
                                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Ellipse Width="6" Height="6" Fill="#4CAF50" Margin="0,0,6,0"/>

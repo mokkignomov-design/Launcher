@@ -89,4 +89,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Core\Infrastructure\WPF\Converters\" />
+    <Folder Include="ViewModels\Profile\" />
+  </ItemGroup>
+
 </Project>

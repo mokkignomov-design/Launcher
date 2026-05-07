@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Runia.Services.Core.Infrastructure.Network;
 
+/// </summary>
+/// сервис для выполнения HTTP-запросов с централизованной обработкой ошибок и логированием.
+/// </summary>
 public enum NetworkError
 {
     None,

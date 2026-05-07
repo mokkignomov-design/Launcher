@@ -59,4 +59,65 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style x:Key="GoogleProgressStyle" TargetType="ProgressBar">
+        <Setter Property="IsIndeterminate" Value="True"/>
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid x:Name="TemplateRoot" SnapsToDevicePixels="true">
+                        <!-- Задний фон кольца -->
+                        <Ellipse Stroke="#22FFFFFF" StrokeThickness="3"/>
+
+                        <!-- Фикс: используем Shape.StrokeDashArray для анимации -->
+                        <Ellipse x:Name="AnimationElement" 
+                             Stroke="{TemplateBinding Foreground}" 
+                             StrokeThickness="3" 
+                             StrokeDashArray="1 100" 
+                             RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform>
+                                <RotateTransform Angle="0"/>
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="true">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="AnimationElement"
+                                                     Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                     From="0" To="360" Duration="0:0:1.5"/>
+
+                                        <!-- Фикс: анимация DashArray без запятых и с явным TargetProperty -->
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="AnimationElement"
+                                                                   Storyboard.TargetProperty="StrokeDashArray">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <DoubleCollection>1 100</DoubleCollection>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.75">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <DoubleCollection>20 100</DoubleCollection>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:1.5">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <DoubleCollection>1 100</DoubleCollection>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

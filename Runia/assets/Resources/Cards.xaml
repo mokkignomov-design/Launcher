@@ -135,12 +135,17 @@
 
     <!-- CHARACTER CARD STYLE -->
     <Style x:Key="CharacterCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource ServerCardBackgroundBrush}"/>
-        <Setter Property="CornerRadius" Value="15"/>
-        <Setter Property="Padding" Value="20"/>
-        <Setter Property="Margin" Value="15,0,0,15"/>
+        <!-- Используем полупрозрачный фон для глубины -->
+        <Setter Property="Background" Value="#1A1A1B"/>
+        <Setter Property="CornerRadius" Value="18"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}"/>
+        <!-- Тонкая грань, чтобы карточка не сливалась с фоном -->
+        <Setter Property="BorderBrush" Value="#252526"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.2" Color="Black"/>
+            </Setter.Value>
+        </Setter>
     </Style>
-
 </ResourceDictionary>
