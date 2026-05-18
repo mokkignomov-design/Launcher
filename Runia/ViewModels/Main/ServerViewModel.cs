@@ -4,7 +4,8 @@ using Runia.Domain.Models;
 using Runia.Services.Common;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Core.Navigation;
-using Runia.Services.Core.Launcher; // Добавил для лаунчера
+using Runia.Services.Core.Launcher;
+using Runia.Services.Network.Clients;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -17,18 +18,21 @@ namespace Runia.ViewModels.Main
     {
         private readonly INavigationService navigationService;
         private readonly IDialogService dialogService;
-        private readonly IAppConfig _config;
-        private readonly LauncherService _launcher; // Добавляем сервис запуска
+        private readonly LauncherService _launcher;
+        private readonly ServerClient _serverClient;
 
-        public ServerViewModel(INavigationService nav, IDialogService dialog, IAppConfig config, LauncherService launcher)
+        // Для отмены предыдущих запросов
+        private CancellationTokenSource? _loadCts;
+
+        public ServerViewModel(INavigationService nav, IDialogService dialog, LauncherService launcher, ServerClient serverClient)
         {
             navigationService = nav;
             dialogService = dialog;
-            _config = config;
-            _launcher = launcher; // Инициализируем
+            _launcher = launcher;
+            _serverClient = serverClient;
 
             Debug.WriteLine("[ServerViewModel] Constructor called");
-            LoadServers();
+            LoadServersAsync();
         }
 
         private ObservableCollection<Runia.Domain.Models.ServerPack> _servers = [];
@@ -61,22 +65,41 @@ namespace Runia.ViewModels.Main
             }
         }
 
-        private async void LoadServers()
+        private async void LoadServersAsync()
         {
-            Debug.WriteLine("[ServerViewModel] Loading servers from config...");
+            // Отменяем предыдущий запрос если он еще идет
+            _loadCts?.Cancel();
+            _loadCts?.Dispose();
+            _loadCts = new CancellationTokenSource();
+
+            Debug.WriteLine("[ServerViewModel] Loading servers from API...");
             IsLoading = true;
             try
             {
-                var packs = await _config.GetServersAsync();
+                var result = await _serverClient.GetServersAsync(_loadCts.Token);
+
+                if (!result.IsSuccess)
+                {
+                    Debug.WriteLine($"[ServerViewModel] Error loading servers: {result.ErrorMessage}");
+                    dialogService?.ShowError(result.ErrorMessage ?? "Не удалось загрузить список серверов.", "Ошибка");
+                    return;
+                }
+
                 Servers.Clear();
-                foreach (var pack in packs)
+                foreach (var pack in result.Data ?? [])
                 {
                     Servers.Add(pack);
                 }
+
+                Debug.WriteLine($"[ServerViewModel] Successfully loaded {Servers.Count} servers");
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[ServerViewModel] Load cancelled");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[ServerViewModel] Error loading servers: {ex}");
+                Debug.WriteLine($"[ServerViewModel] Unexpected error loading servers: {ex}");
                 dialogService?.ShowError("Не удалось загрузить список серверов.", "Ошибка");
             }
             finally

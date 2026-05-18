@@ -3,14 +3,17 @@ using Microsoft.Extensions.Hosting;
 using Runia.Services.Auth;
 using Runia.Services.Common;
 using Runia.Services.Core.Infrastructure.Configuration;
-using Runia.Services.Core.Infrastructure.Network;
 using Runia.Services.Core.Infrastructure.Persistence;
 using Runia.Services.Core.Launcher;
 using Runia.Services.Core.Navigation;
+using Runia.Services.Core.Infrastructure.Network;
 using Runia.Services.Installers;
+using Runia.Services.Network.Clients;
+using System.IO;
+using Microsoft.Extensions.Logging;
+using Runia.Services.Core.Infrastructure.Logging;
 using Runia.ViewModels.Main;
 using Runia.ViewModels.Windows;
-using System;
 using System.Windows;
 
 namespace Runia
@@ -33,25 +36,20 @@ namespace Runia
                     services.AddSingleton<INavigationService, NavigationService>();
                     services.AddSingleton<Runia.Services.Core.Infrastructure.ILocalDataService, Runia.Services.Core.Infrastructure.LocalDataService>();
 
-                    // Регистрация хранилища токенов
                     services.AddSingleton<ITokenStore>(sp =>
                     {
                         var cfg = sp.GetRequiredService<IAppConfig>();
                         return new SecureTokenStore(cfg.GameRootPath);
                     });
 
-                    // Хендлер для JWT (Transient обязателен для HttpClient)
                     services.AddTransient<JwtHandler>();
 
-                    // Регистрация именованного клиента специально для SkinService
                     services.AddHttpClient("SkinClient", (sp, c) =>
                     {
                         var cfg = sp.GetRequiredService<IAppConfig>();
                         c.BaseAddress = new Uri(cfg.ApiBaseUrl);
                         c.Timeout = TimeSpan.FromSeconds(60);
                     }).AddHttpMessageHandler<JwtHandler>();
-
-                    // Регистрация BaseApiService как типизированного клиента
                     services.AddHttpClient<BaseApiService>((sp, c) =>
                     {
                         var cfg = sp.GetRequiredService<IAppConfig>();
@@ -59,14 +57,32 @@ namespace Runia
                         c.Timeout = TimeSpan.FromSeconds(30);
                     }).AddHttpMessageHandler<JwtHandler>();
 
+                    // --- РЕГИСТРАЦИЯ NETWORK КЛИЕНТОВ ---
+                    services.AddSingleton<ServerClient>();
+                    services.AddSingleton<NewsClient>(sp =>
+                    {
+                        var apiService = sp.GetRequiredService<BaseApiService>();
+                        var localData = sp.GetService<Runia.Services.Core.Infrastructure.ILocalDataService>();
+                        return new NewsClient(apiService, localData);
+                    });
+                    services.AddSingleton<UserClient>(sp =>
+                    {
+                        var api = sp.GetRequiredService<BaseApiService>();
+                        var tokenStore = sp.GetRequiredService<Runia.Services.Core.Infrastructure.Network.ITokenStore>();
+                        var auth = sp.GetRequiredService<AuthService>();
+                        return new UserClient(api, tokenStore, auth);
+                    });
+                    services.AddSingleton<SessionClient>(sp =>
+                    {
+                        var api = sp.GetRequiredService<BaseApiService>();
+                        return new SessionClient(api);
+                    });
+                    services.AddSingleton<AuthClient>();
                     services.AddSingleton<ImageManager>();
-
-                    // РЕГИСТРАЦИЯ SKIN SERVICE (как Singleton, чтобы DI его видел для навигации)
                     services.AddSingleton<ISkinService, SkinService>();
 
                     // --- 2. ОСНОВНЫЕ СЕРВИСЫ ---
                     services.AddSingleton<AuthService>();
-                    services.AddSingleton<NewsService>();
                     services.AddSingleton<VersionsManager>();
                     services.AddSingleton<DataManager>();
                     services.AddSingleton<LauncherService>();
@@ -78,6 +94,11 @@ namespace Runia
                     services.AddHttpClient("ImageClient", c => c.Timeout = TimeSpan.FromSeconds(30));
                     services.AddSingleton<Runia.Services.Core.Infrastructure.Network.IImageDownloader, Runia.Services.Core.Infrastructure.Network.ImageDownloader>();
                     services.AddSingleton<IImageProvider, ImageProvider>();
+
+                    // Register file logger provider to capture logs into log.txt at app root
+                    var logPath = Path.Combine(AppContext.BaseDirectory, "log.txt");
+                    var fileLoggerProvider = new FileLoggerProvider(logPath);
+                    services.AddSingleton<ILoggerProvider>(sp => fileLoggerProvider);
 
                     // ViewModels
                     services.AddSingleton<HomeViewModel>();
@@ -94,10 +115,12 @@ namespace Runia
 
                     // Main ViewModels
                     services.AddTransient<Runia.ViewModels.Main.ServerDetailsViewModel>();
-                    services.AddTransient<Runia.ViewModels.Main.ServerViewModel>();
+                    services.AddSingleton<Runia.ViewModels.Main.ServerViewModel>(); 
                     services.AddTransient<Runia.ViewModels.Main.SettingsViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SidebarViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.UserViewModel>();
+                    services.AddTransient<Runia.ViewModels.Main.SecurityUserViewModel>();
+                    services.AddTransient<Runia.ViewModels.Main.PaymentHistoryUserViewModel>();
 
                     // Pages
                     services.AddSingleton<Runia.Ui.PagesMain.HomePage>();
@@ -116,7 +139,7 @@ namespace Runia
 
                     // Windows
                     services.AddTransient<Runia.Ui.Windows.LoginWindow>();
-                    services.AddSingleton<Runia.Ui.Windows.MainWindow>();
+                    services.AddTransient<Runia.Ui.Windows.MainWindow>();
                 })
                 .Build();
 

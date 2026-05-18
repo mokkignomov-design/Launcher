@@ -59,23 +59,22 @@ namespace Runia.Services.Common
             _logger = logger;
             _tokenStore = tokenStore;
 
-            // Используем GameRootPath из конфигурации вместо прямого обращения к Environment[cite: 10, 11]
             _skinCacheDir = Path.Combine(_config.GameRootPath, "Cache", "Skins");
             Directory.CreateDirectory(_skinCacheDir);
         }
 
         public async Task<SkinInfoResponse?> GetSkinInfoAsync(string username)
         {
-            // Используем BaseApiService для унифицированной обработки запросов[cite: 9]
-            string url = $"{_config.ApiBaseUrl}api/v1/skins/info/{username}";
-            var result = await _api.GetAsync<SkinInfoResponse>(url);
+            if (string.IsNullOrWhiteSpace(username)) return null;
 
-            if (result.IsSuccess)
+            var result = await _api.GetAsync<SkinInfoResponse>($"/api/v1/skins/info/{username}");
+
+            if (result.IsSuccess && result.Data != null && !string.IsNullOrWhiteSpace(result.Data.Url))
             {
                 return result.Data;
             }
 
-            _logger.LogWarning("Skin info not found or API error for {Username}: {Error}", username, result.ErrorMessage);
+            _logger.LogInformation("Skin info missing or API error for {Username}: {Error}. Returning null.", username, result.ErrorMessage);
             return null;
         }
 
@@ -83,7 +82,6 @@ namespace Runia.Services.Common
         {
             try
             {
-                // ВАЖНО: берем клиент по имени, которое мы дали в App.xaml.cs
                 var client = _httpFactory.CreateClient("SkinClient");
 
                 using var content = new MultipartFormDataContent();
@@ -91,12 +89,11 @@ namespace Runia.Services.Common
                 var fileContent = new ByteArrayContent(fileBytes);
                 fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
 
-                content.Add(fileContent, "File", Path.GetFileName(filePath));
-                content.Add(new StringContent(username), "Username");
+                content.Add(fileContent, "file", Path.GetFileName(filePath));
+                content.Add(new StringContent(username), "username");
 
                 _logger.LogInformation("Uploading skin for {Username}...", username);
 
-                // Теперь JwtHandler, привязанный к "SkinClient", сам добавит токен
                 var response = await client.PostAsync("api/v1/skins/upload", content);
 
                 if (response.IsSuccessStatusCode)
@@ -131,7 +128,7 @@ namespace Runia.Services.Common
                 return localPath;
             }
 
-            // Обработка локальных ссылок file://
+         
             if (skinUrl.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
             {
                 try
@@ -152,7 +149,6 @@ namespace Runia.Services.Common
                 }
             }
 
-            // Загрузка через HttpClient (для работы с бинарными данными напрямую)
             try
             {
                 var client = _httpFactory.CreateClient();

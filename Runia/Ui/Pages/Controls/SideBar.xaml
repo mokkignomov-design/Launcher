@@ -7,142 +7,167 @@
              mc:Ignorable="d" x:Name="Root">
 
     <UserControl.Resources>
-        <DropShadowEffect x:Key="HighlightEffect" Color="#E8B5C0" BlurRadius="12" ShadowDepth="0" Opacity="0.6"/>
-
-        <Style x:Key="SidebarIconStyle" TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
-            <Setter Property="FontSize" Value="28"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Style x:Key="NavEmojiStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="22,0,0,0"/>
-            <Setter Property="Foreground" Value="{DynamicResource SidebarIconBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.6"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource SidebarHighlightBrush}"/>
-                    <Setter Property="Effect" Value="{StaticResource HighlightEffect}"/>
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="NavTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                    <Setter Property="Opacity" Value="1"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="NavRadioStyle" TargetType="RadioButton">
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D0D0D0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Grid Background="Transparent">
-                            <ContentPresenter />
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ActiveIndicator" 
+                                    Background="{StaticResource PrimaryBrush}" 
+                                    Width="4" CornerRadius="0,2,2,0" 
+                                    Visibility="Collapsed"/>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"/>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Background" Value="#15FFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#0AFFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
     </UserControl.Resources>
 
-    <!-- Используем Border как основной контейнер, чтобы клики ловились по всей ширине -->
     <Border x:Name="SidebarBorder" 
             Background="{DynamicResource SidebarBackgroundBrush}" 
             CornerRadius="20" 
             Width="70" 
             HorizontalAlignment="Left" 
-            ClipToBounds="True">
+            Margin="10,15,0,15"
+            BorderBrush="#1AFFFFFF"
+            BorderThickness="1">
 
-        <Grid x:Name="SidebarPanel" Margin="0,15,0,30">
-            <!-- Подняли на 20px (было 35) -->
+        <Grid x:Name="SidebarPanel">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="100"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
 
-            <!-- 0. ЛОГОТИП -->
-            <Grid Grid.Row="0" Margin="0,20,0,20" HorizontalAlignment="Left" Width="230">
-                <TextBlock x:Name="LogoText" FontSize="45" FontWeight="Bold" FontFamily="/assets/Fonts/#Gabriela" VerticalAlignment="Center" Margin="30,0,-10,0">
-                    <Run Text="R" Foreground="{DynamicResource SidebarHighlightBrush}"/><Run x:Name="RuniaSuffix" Text="unia"><Run.Foreground><SolidColorBrush x:Name="SuffixBrush" Color="Transparent"/></Run.Foreground></Run>
-                </TextBlock>
+            <Grid Grid.Row="0">
+                <StackPanel x:Name="LogoCenterPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="RTextBlock" Text="R" FontSize="36" FontWeight="Bold" FontFamily="/assets/Fonts/#Gabriela" 
+                               Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="UniaTextBlock" Text="unia" FontSize="36" FontWeight="Bold" FontFamily="/assets/Fonts/#Gabriela" 
+                               VerticalAlignment="Center" Opacity="0" Width="0"
+                               Foreground="{StaticResource PrimaryBrush}"/>
+                </StackPanel>
             </Grid>
 
-            <!-- 1. ПРОФИЛЬ -->
-            <RadioButton x:Name="ProfileRadio" Grid.Row="1" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,0,0,20">
+            <RadioButton x:Name="ProfileRadio" Grid.Row="1" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,0,0,20" IsChecked="{Binding IsProfileSelected, Mode=TwoWay}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Checked">
                         <i:InvokeCommandAction Command="{Binding GoProfileCommand}"/>
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-                <Grid Width="230">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="70"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="" Style="{StaticResource SidebarIconStyle}"/>
-                    <TextBlock x:Name="ProfileLabel" Grid.Column="1" Text="Профиль" VerticalAlignment="Center" Margin="5,0,0,0" FontSize="14" Opacity="0" Foreground="{DynamicResource TextBrush}"/>
+                <Grid Width="230" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                        <TextBlock Text="🕵️" Style="{StaticResource NavEmojiStyle}"/>
+                        <TextBlock x:Name="ProfileLabel" Text="Личный кабинет" Style="{StaticResource NavTextStyle}" Opacity="0"/>
+                    </StackPanel>
                 </Grid>
             </RadioButton>
 
-            <!-- 2. СТЕК -->
             <StackPanel Grid.Row="2" VerticalAlignment="Center">
-                <RadioButton x:Name="HomeRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,20" IsChecked="{Binding IsHomeSelected, Mode=TwoWay}">
+                <RadioButton x:Name="HomeRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" IsChecked="{Binding IsHomeSelected, Mode=TwoWay}">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="Checked">
                             <i:InvokeCommandAction Command="{Binding GoHomeCommand}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
-                    <Grid Width="230">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="" Style="{StaticResource SidebarIconStyle}"/>
-                        <TextBlock x:Name="HomeLabel" Grid.Column="1" Text="Новости" VerticalAlignment="Center" Margin="5,0,0,0" FontSize="14" Opacity="0" Foreground="{DynamicResource TextBrush}"/>
+                    <Grid Width="230" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <TextBlock Text="🏡" Style="{StaticResource NavEmojiStyle}"/>
+                            <TextBlock x:Name="HomeLabel" Text="Новости" Style="{StaticResource NavTextStyle}" Opacity="0"/>
+                        </StackPanel>
                     </Grid>
                 </RadioButton>
 
-                <RadioButton x:Name="ServersRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,20">
+                <RadioButton x:Name="ServersRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="Checked">
                             <i:InvokeCommandAction Command="{Binding GoServersCommand}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
-                    <Grid Width="230">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="" Style="{StaticResource SidebarIconStyle}"/>
-                        <TextBlock x:Name="ServersLabel" Grid.Column="1" Text="Серверы" VerticalAlignment="Center" Margin="5,0,0,0" FontSize="14" Opacity="0" Foreground="{DynamicResource TextBrush}"/>
+                    <Grid Width="230" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <TextBlock Text="💾" Style="{StaticResource NavEmojiStyle}"/>
+                            <TextBlock x:Name="ServersLabel" Text="Серверы" Style="{StaticResource NavTextStyle}" Opacity="0"/>
+                        </StackPanel>
                     </Grid>
                 </RadioButton>
 
-                <RadioButton x:Name="SettingsRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,20">
+                <RadioButton x:Name="SettingsRadio" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup">
                     <i:Interaction.Triggers>
                         <i:EventTrigger EventName="Checked">
                             <i:InvokeCommandAction Command="{Binding GoSettingsCommand}"/>
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
-                    <Grid Width="230">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="" Style="{StaticResource SidebarIconStyle}"/>
-                        <TextBlock x:Name="SettingsLabel" Grid.Column="1" Text="Настройки" VerticalAlignment="Center" Margin="5,0,0,0" FontSize="14" Opacity="0" Foreground="{DynamicResource TextBrush}"/>
+                    <Grid Width="230" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                            <TextBlock Text="⚙️" Style="{StaticResource NavEmojiStyle}"/>
+                            <TextBlock x:Name="SettingsLabel" Text="Настройки" Style="{StaticResource NavTextStyle}" Opacity="0"/>
+                        </StackPanel>
                     </Grid>
                 </RadioButton>
             </StackPanel>
 
-            <!-- 3. ВЫХОД -->
-            <RadioButton x:Name="LogoutRadio" Grid.Row="3" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,20">
+            <RadioButton x:Name="LogoutRadio" Grid.Row="3" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Checked">
                         <i:InvokeCommandAction Command="{Binding LogoutCommand}"/>
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-                <Grid Width="230">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="70"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="" Style="{StaticResource SidebarIconStyle}"/>
-                    <TextBlock x:Name="LogoutLabel" Grid.Column="1" Text="Выход" VerticalAlignment="Center" Margin="5,0,0,0" FontSize="14" Opacity="0" Foreground="{DynamicResource TextBrush}"/>
+                <Grid Width="230" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                        <TextBlock Text="🚪" Style="{StaticResource NavEmojiStyle}"/>
+                        <TextBlock x:Name="LogoutLabel" Text="Выйти из аккаунта" Style="{StaticResource NavTextStyle}" Opacity="0"/>
+                    </StackPanel>
                 </Grid>
             </RadioButton>
         </Grid>
@@ -152,26 +177,18 @@
         <EventTrigger RoutedEvent="MouseEnter">
             <BeginStoryboard>
                 <Storyboard>
-                    <DoubleAnimation Storyboard.TargetName="SidebarBorder" Storyboard.TargetProperty="Width" To="230" Duration="0:0:0.25">
+                    <DoubleAnimation Storyboard.TargetName="SidebarBorder" Storyboard.TargetProperty="Width" To="230" Duration="0:0:0.3">
                         <DoubleAnimation.EasingFunction>
                             <CubicEase EasingMode="EaseOut"/>
                         </DoubleAnimation.EasingFunction>
                     </DoubleAnimation>
-
-                    <!-- Центрируем логотип через Margin -->
-                    <ThicknessAnimation Storyboard.TargetName="LogoText" Storyboard.TargetProperty="Margin" To="55,0,0,0" Duration="0:0:0.25">
-                        <ThicknessAnimation.EasingFunction>
-                            <CubicEase EasingMode="EaseOut"/>
-                        </ThicknessAnimation.EasingFunction>
-                    </ThicknessAnimation>
-                    <ColorAnimation Storyboard.TargetName="SuffixBrush" Storyboard.TargetProperty="Color" To="#E8B5C0" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
-
-                    <!-- Проявляем надписи -->
-                    <DoubleAnimation Storyboard.TargetName="ProfileLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
-                    <DoubleAnimation Storyboard.TargetName="HomeLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
-                    <DoubleAnimation Storyboard.TargetName="ServersLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
-                    <DoubleAnimation Storyboard.TargetName="SettingsLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
-                    <DoubleAnimation Storyboard.TargetName="LogoutLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
+                    <DoubleAnimation Storyboard.TargetName="UniaTextBlock" Storyboard.TargetProperty="Width" To="80" Duration="0:0:0.3"/>
+                    <DoubleAnimation Storyboard.TargetName="UniaTextBlock" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" BeginTime="0:0:0.1"/>
+                    <DoubleAnimation Storyboard.TargetName="ProfileLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetName="HomeLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetName="ServersLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetName="SettingsLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetName="LogoutLabel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
                 </Storyboard>
             </BeginStoryboard>
         </EventTrigger>
@@ -183,12 +200,8 @@
                             <CubicEase EasingMode="EaseIn"/>
                         </DoubleAnimation.EasingFunction>
                     </DoubleAnimation>
-
-                    <!-- Возвращаем логотип -->
-                    <ThicknessAnimation Storyboard.TargetName="LogoText" Storyboard.TargetProperty="Margin" To="18,0,0,0" Duration="0:0:0.2"/>
-                    <ColorAnimation Storyboard.TargetName="SuffixBrush" Storyboard.TargetProperty="Color" To="Transparent" Duration="0:0:0.1"/>
-
-                    <!-- Прячем надписи -->
+                    <DoubleAnimation Storyboard.TargetName="UniaTextBlock" Storyboard.TargetProperty="Width" To="0" Duration="0:0:0.2"/>
+                    <DoubleAnimation Storyboard.TargetName="UniaTextBlock" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
                     <DoubleAnimation Storyboard.TargetName="ProfileLabel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
                     <DoubleAnimation Storyboard.TargetName="HomeLabel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
                     <DoubleAnimation Storyboard.TargetName="ServersLabel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>

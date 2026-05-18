@@ -86,8 +86,8 @@ public sealed class BaseApiService(HttpClient httpClient, ILogger<BaseApiService
         }
         catch (JsonException ex)
         {
-            logger.LogError(ex, "GET deserialization error: {Url}", url);
-            return Result<T?>.Fail(NetworkError.DeserializationError, ex.Message);
+            logger.LogError(ex, "GET deserialization error for type {Type}: {Url} - {Message}", typeof(T).Name, url, ex.Message);
+            return Result<T?>.Fail(NetworkError.DeserializationError, $"Deserialization error for {typeof(T).Name}: {ex.Message}");
         }
         catch (Exception ex)
         {
@@ -127,8 +127,8 @@ public sealed class BaseApiService(HttpClient httpClient, ILogger<BaseApiService
         }
         catch (JsonException ex)
         {
-            logger.LogError(ex, "POST deserialization error: {Url}", url);
-            return Result<TOut?>.Fail(NetworkError.DeserializationError, ex.Message);
+            logger.LogError(ex, "POST deserialization error for type {Type}: {Url} - {Message}", typeof(TOut).Name, url, ex.Message);
+            return Result<TOut?>.Fail(NetworkError.DeserializationError, $"Deserialization error for {typeof(TOut).Name}: {ex.Message}");
         }
         catch (Exception ex)
         {
@@ -168,6 +168,82 @@ public sealed class BaseApiService(HttpClient httpClient, ILogger<BaseApiService
         catch (Exception ex)
         {
             logger.LogError(ex, "POST unexpected error: {Url}", url);
+            return Result<bool>.Fail(NetworkError.Unknown, ex.Message);
+        }
+    }
+
+    public async Task<Result<TOut?>> PutAsync<TIn, TOut>(string url, TIn body, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await httpClient.PutAsJsonAsync(url, body, s_jsonOptions, ct);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                return Result<TOut?>.Fail(NetworkError.Unauthorized, "Unauthorized");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var msg = await ReadSafeErrorMessageAsync(response, ct);
+                logger.LogWarning("PUT {Url} returned {Status}: {Msg}", url, response.StatusCode, msg);
+                return Result<TOut?>.Fail(NetworkError.HttpError, msg);
+            }
+
+            var data = await response.Content.ReadFromJsonAsync<TOut>(s_jsonOptions, ct);
+            return Result<TOut?>.Success(data);
+        }
+        catch (OperationCanceledException ex) when (ct.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "PUT cancelled: {Url}", url);
+            return Result<TOut?>.Fail(NetworkError.Timeout, "Request timeout");
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogWarning(ex, "PUT network error: {Url}", url);
+            return Result<TOut?>.Fail(NetworkError.NetworkUnavailable, "Network unavailable");
+        }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "PUT deserialization error: {Url}", url);
+            return Result<TOut?>.Fail(NetworkError.DeserializationError, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "PUT unexpected error: {Url}", url);
+            return Result<TOut?>.Fail(NetworkError.Unknown, ex.Message);
+        }
+    }
+
+    public async Task<Result<bool>> DeleteAsync(string url, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await httpClient.DeleteAsync(url, ct);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                return Result<bool>.Fail(NetworkError.Unauthorized, "Unauthorized");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var msg = await ReadSafeErrorMessageAsync(response, ct);
+                logger.LogWarning("DELETE {Url} returned {Status}: {Msg}", url, response.StatusCode, msg);
+                return Result<bool>.Fail(NetworkError.HttpError, msg);
+            }
+
+            return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException ex) when (ct.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "DELETE cancelled: {Url}", url);
+            return Result<bool>.Fail(NetworkError.Timeout, "Request timeout");
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogWarning(ex, "DELETE network error: {Url}", url);
+            return Result<bool>.Fail(NetworkError.NetworkUnavailable, "Network unavailable");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "DELETE unexpected error: {Url}", url);
             return Result<bool>.Fail(NetworkError.Unknown, ex.Message);
         }
     }

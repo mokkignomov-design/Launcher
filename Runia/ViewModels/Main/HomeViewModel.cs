@@ -4,6 +4,7 @@ using Runia.Domain.Models;
 using Runia.Services.Core.Infrastructure.Network;
 using Runia.Services.Common;
 using Runia.Services.Core.Navigation;
+using Runia.Services.Network.Clients;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
@@ -14,23 +15,22 @@ namespace Runia.ViewModels.Main
     {
         private readonly IDialogService _dialog;
         private readonly INavigationService _nav;
-        private readonly NewsService _newsService;
+        private readonly NewsClient _newsClient;
         private readonly IImageDownloader _imageDownloader;
-
-
 
         [ObservableProperty]
         private ObservableCollection<NewsItem> newsItems = [];
+
         public HomeViewModel(
             IDialogService dialog,
             INavigationService nav,
-            NewsService newsService,
+            NewsClient newsClient,
             IImageDownloader imageDownloader
         )
         {
             _dialog = dialog;
             _nav = nav;
-            _newsService = newsService;
+            _newsClient = newsClient;
             _imageDownloader = imageDownloader;
 
             Debug.WriteLine("[HomeViewModel] Constructor called");
@@ -50,35 +50,47 @@ namespace Runia.ViewModels.Main
 
         private async Task InitDataAsync()
         {
-            if (NewsItems != null && NewsItems.Count > 0)
+            // Ensure the generated NewsItems property (backing field newsItems) is initialized
+            newsItems ??= [];
+
+            if (newsItems.Count > 0)
             {
                 Debug.WriteLine("[HomeViewModel] InitDataAsync skipped: NewsItems already populated");
                 return;
             }
             try
             {
-                var news = await _newsService.GetLatestNewsAsync();
+                var result = await _newsClient.GetLatestNewsAsync(page: 1, pageSize: 10);
 
-                if (news == null)
+                if (!result.IsSuccess)
                 {
-                    Debug.WriteLine("[HomeViewModel] No news returned from service");
+                    Debug.WriteLine($"[HomeViewModel] Ошибка загрузки новостей: {result.ErrorMessage}");
+                    _dialog?.ShowError(result.ErrorMessage ?? "Не удалось загрузить новости", "Ошибка");
                     return;
                 }
 
-                NewsItems ??= [];
-
-                NewsItems.Clear();
-                foreach (var item in news)
+                if (result.Data?.Items == null || !result.Data.Items.Any())
                 {
-                    if (item == null) continue;
-                    NewsItems.Add(item);
+                    Debug.WriteLine("[HomeViewModel] No news returned from API");
+                    return;
                 }
 
-                // Start background downloads for images. Each item will receive LocalImagePath when available.
-                foreach (var item in NewsItems)
+                newsItems.Clear();
+                foreach (var item in result.Data.Items)
                 {
                     if (item == null) continue;
-                    _ = LoadImageAsync(item);
+                    newsItems.Add(item);
+                }
+
+                Debug.WriteLine($"[HomeViewModel] Successfully loaded {newsItems.Count} news items");
+
+                // Start background downloads for images. Each item will receive LocalImagePath when available.
+                foreach (var item in newsItems)
+                {
+                    if (item != null)
+                    {
+                        _ = LoadImageAsync(item);
+                    }
                 }
             }
             catch (Exception ex)

@@ -68,7 +68,8 @@ namespace Runia.Services.Auth
                 AccessToken = res.Data.AccessToken;
                 RefreshToken = res.Data.RefreshToken;
 
-                await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, true, username);
+                // Не сохраняем токены автоматически здесь — это делает вызывающий код
+                // (SaveTokens) в зависимости от флага "RememberMe".
 
                 CurrentUser = new UserProfile { Name = username, Rank = "Player", Balance = 0 };
                 CachedServers = [];
@@ -142,7 +143,9 @@ namespace Runia.Services.Auth
             await _refreshLock.WaitAsync(ct);
             try
             {
-                var (_, refresh, storedUsername) = await _tokenStore.GetTokensAsync();
+                // Предпочитаем использовать текущий in-memory refresh token если он есть
+                var (_, storedRefresh, storedUsername) = await _tokenStore.GetTokensAsync();
+                var refresh = !string.IsNullOrWhiteSpace(RefreshToken) ? RefreshToken : storedRefresh;
                 if (string.IsNullOrWhiteSpace(refresh)) return false;
 
                 var req = new { refreshToken = refresh };
@@ -152,8 +155,13 @@ namespace Runia.Services.Auth
                 {
                     AccessToken = res.Data.AccessToken;
                     RefreshToken = res.Data.RefreshToken;
-                    // Сохраняем с тем же username, что и раньше
-                    await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, true, storedUsername);
+
+                    // Если ранее токены были сохранены в хранилище (storedUsername != null), обновляем их
+                    if (!string.IsNullOrWhiteSpace(storedUsername))
+                    {
+                        await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, true, storedUsername);
+                    }
+
                     return true;
                 }
 

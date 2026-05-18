@@ -10,6 +10,7 @@
              d:DesignWidth="1100">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style x:Key="HiddenTabControlStyle" TargetType="TabControl">
             <Setter Property="Template">
                 <Setter.Value>
@@ -28,19 +29,19 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="30,20,30,30">
+    <Grid Margin="40">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,35" VerticalAlignment="Center">
-            <TextBlock Text="ЛИЧНЫЙ КАБИНЕТ" Style="{StaticResource HeaderText}" Opacity="0.5" FontSize="18"/>
-            <TextBlock Text="/" Foreground="White" Opacity="0.5" Margin="5,0" FontSize="18" Height="27" Width="7"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,-30,0,30" VerticalAlignment="Center">
+            <TextBlock Text="ЛИЧНЫЙ КАБИНЕТ" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource GrayBrush}"/>
+            <TextBlock Text="/" Foreground="{DynamicResource GrayBrush}" Margin="15,0" FontSize="14" VerticalAlignment="Center" Opacity="0.9"/>
 
             <ComboBox Style="{StaticResource PremiumComboBoxStyle}" 
                       SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}" 
-                      Width="250" SelectionChanged="ComboBox_SelectionChanged">
+                      Width="220" VerticalAlignment="Center">
                 <ComboBoxItem Content="Главная"/>
                 <ComboBoxItem Content="Безопасность"/>
                 <ComboBoxItem Content="История платежей"/>
@@ -57,86 +58,102 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="30"/>
                         <ColumnDefinition Width="380"/>
                     </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Column="0" Margin="0,0,30,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel Grid.Column="0">
 
-                        <UniformGrid Grid.Row="0" Columns="2" Rows="1" Margin="0,0,0,25">
-                            <Border Style="{StaticResource ModernCard}" Margin="0,0,12,0" MinHeight="210">
-                                <Grid Margin="24">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="42"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Text="ВАШИ ДАННЫЕ" Style="{StaticResource HeaderText}" Opacity="0.8" HorizontalAlignment="Left" Margin="-31,-34,0,0"/>
-                                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0">
-                                        <TextBlock Text="{Binding Username, StringFormat='Ник: {0}'}" Style="{StaticResource HintText}" Margin="0,4"/>
-                                        <TextBlock Text="{Binding Email, StringFormat='Email: {0}'}" Style="{StaticResource HintText}" Margin="0,4"/>
-                                        <TextBlock Text="{Binding RegDate, StringFormat='Регистрация: {0}'}" Style="{StaticResource HintText}" Margin="0,4"/>
+                        <UniformGrid Columns="2" Rows="1" Margin="0,0,0,25">
+                            <StackPanel Margin="0,0,10,0">
+                                <TextBlock Text="ВАШИ ДАННЫЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                                <Border Style="{StaticResource ModernCard}" MinHeight="160">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Никнейм" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding Username}" Style="{StaticResource HeaderText}" Margin="0,0,0,12"/>
+
+                                        <TextBlock Text="Email" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding Email}" Style="{StaticResource HeaderText}" Margin="0,0,0,12"/>
+
+                                        <TextBlock Text="Дата регистрации" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding RegDate}" Style="{StaticResource HeaderText}"/>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
+                                </Border>
+                            </StackPanel>
 
-                            <Border Style="{StaticResource ModernCard}" Margin="12,0,0,0" MinHeight="210">
-                                <Grid Margin="24">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Text="БАЛАНС" Style="{StaticResource HeaderText}" Opacity="0.8" HorizontalAlignment="Left" Margin="-30,-34,0,0"/>
-                                    <TextBlock Grid.Row="1" Text="{Binding Balance}" Foreground="{StaticResource PrimaryBrush}" FontSize="28" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                                    <Button Grid.Row="2" Content="Пополнить" Style="{StaticResource PrimaryButtonStyle}" Height="42"/>
-                                </Grid>
-                            </Border>
+                            <StackPanel Margin="10,0,0,0">
+                                <TextBlock Text="КОШЕЛЕК" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                                <Border Style="{StaticResource ModernCard}" MinHeight="175">
+                                    <Grid>
+                                        <StackPanel VerticalAlignment="Top">
+                                            <TextBlock Text="Текущий баланс" Style="{StaticResource HeaderText}"  FontSize="14"/>
+                                            <TextBlock Text="Доступно для покупок" Style="{StaticResource HintText}"/>
+                                        </StackPanel>
+
+                                        <StackPanel VerticalAlignment="Bottom">
+                                            <TextBlock Text="{Binding Balance, StringFormat='{}{0} ₽'}" 
+                                                       Foreground="{StaticResource PrimaryBrush}" 
+                                                       FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                                            <Button Content="Пополнить" Style="{StaticResource PrimaryButtonStyle}" Height="40" HorizontalAlignment="Stretch"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
                         </UniformGrid>
 
-                        <Border Grid.Row="1" Style="{StaticResource ModernCard}" Margin="0,0,0,20">
-                            <Grid Margin="24">
+                        <TextBlock Text="ИГРОВАЯ СТАТИСТИКА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                        <Border Style="{StaticResource ModernCard}">
+                            <UniformGrid Columns="2" Rows="2">
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Время в игре" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding PlayedHours, StringFormat='{}{0} ч.'}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                </StackPanel>
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Уровень" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding Level, StringFormat='{}{0} lvl'}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                </StackPanel>
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Сервер" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding Server}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                </StackPanel>
+                                <StackPanel Margin="10">
+                                    <TextBlock Text="Друзей" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding FriendsCount}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                </StackPanel>
+                            </UniformGrid>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="ВИЗУАЛИЗАЦИЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                        <Border Style="{StaticResource CharacterCardStyle}" Height="450">
+                            <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="СТАТИСТИКА" Style="{StaticResource HeaderText}" Opacity="0.8" HorizontalAlignment="Left" Margin="-28,-29,0,0"/>
-                                <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                    <TextBlock Text="Время в игре: 275 ч." Style="{StaticResource HintText}" Margin="0,4"/>
-                                    <TextBlock Text="Любимый сервер: Mini Games" Style="{StaticResource HintText}" Margin="0,4"/>
-                                    <TextBlock Text="Друзей: 12" Style="{StaticResource HintText}" Margin="0,4"/>
-                                    <TextBlock Text="Уровень: 4" Style="{StaticResource HintText}" Margin="0,4"/>
+
+                                <controls:SkinView x:Name="PlayerPreview" SkinPath="{Binding SkinPath}" Margin="20"/>
+
+                                <StackPanel Grid.Row="1" Margin="20">
+                                    <Button Content="ИЗМЕНИТЬ СКИН" 
+                                            Command="{Binding LoadSkinCommand}" 
+                                            Style="{StaticResource PrimaryButtonStyle}" 
+                                            Height="45" Margin="0,0,0,10"/>
+                               
                                 </StackPanel>
                             </Grid>
                         </Border>
-                    </Grid>
-
-                    <Border Grid.Column="1" Style="{StaticResource CharacterCardStyle}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="СКИН И ПЛАЩ" Style="{StaticResource HeaderText}" Margin="14,15,0,0" HorizontalAlignment="Left"/>
-                            <controls:SkinView Grid.Row="1" x:Name="PlayerPreview" SkinPath="{Binding SkinPath}" Margin="20"/>
-                            <Button Grid.Row="2" Content="Загрузить скин" Command="{Binding LoadSkinCommand}" Style="{StaticResource PrimaryButtonStyle}" Height="48" Margin="25"/>
-                        </Grid>
-                    </Border>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
             <TabItem>
                 <profile:SecurityUserPage/>
             </TabItem>
-
             <TabItem>
                 <profile:PaymentHistoryUserPage/>
             </TabItem>
-
         </TabControl>
     </Grid>
 </UserControl>

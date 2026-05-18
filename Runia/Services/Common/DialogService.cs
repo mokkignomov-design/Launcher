@@ -56,17 +56,17 @@ namespace Runia.Services.Common
 
         public void ShowMainWindow()
         {
+            // Закрываем старое главное окно, если оно есть
             var existing = Application.Current.Windows.OfType<Ui.Windows.MainWindow>().FirstOrDefault();
             if (existing != null && existing.IsLoaded)
             {
-                Debug.WriteLine("[DialogService] MainWindow already opened - activating existing.");
-                existing.Activate();
-                CloseLoginWindow();
-                return;
+                Debug.WriteLine("[DialogService] Closing existing MainWindow before opening new one");
+                existing.Close();
             }
 
-            Debug.WriteLine("[DialogService] Opening MainWindow via DI");
+            Debug.WriteLine("[DialogService] Opening new MainWindow via DI");
 
+            // Создаем новое окно (Transient)
             var mainWindow = App.Services?.GetService<Ui.Windows.MainWindow>() ?? new Ui.Windows.MainWindow();
 
             var vm = App.Services?.GetService<MainWindowViewModel>();

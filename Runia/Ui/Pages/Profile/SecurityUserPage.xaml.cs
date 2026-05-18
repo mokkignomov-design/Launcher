@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using Runia.ViewModels.Main;
 
 namespace Runia.Ui.Pages.Profile
 {
@@ -7,6 +8,10 @@ namespace Runia.Ui.Pages.Profile
         public SecurityUserPage()
         {
             InitializeComponent();
+            if (App.Services?.GetService(typeof(SecurityUserViewModel)) is SecurityUserViewModel vm)
+            {
+                DataContext = vm;
+            }
         }
     }
 }

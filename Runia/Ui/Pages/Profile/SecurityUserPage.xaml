@@ -1,21 +1,173 @@
-﻿<UserControl x:Class="Runia.Ui.Pages.Profile.SecurityUserPage"
+<UserControl x:Class="Runia.Ui.Pages.Profile.SecurityUserPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Runia.Ui.Pages.Profile"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <StackPanel Margin="30,20,30,30">
-            <TextBlock Text="НАСТРОЙКИ БЕЗОПАСНОСТИ" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,30"/>
+             mc:Ignorable="d" d:DesignWidth="1000" Height="590">
 
-            <StackPanel HorizontalAlignment="Left" Height="244" Width="400" Margin="10,0,0,0">
-                <TextBlock Text="Двухфакторная аутентификация: Отключена" Style="{StaticResource HintText}" Margin="0,10"/>
-                <TextBlock Text="Email: g******2@bk.ru" Style="{StaticResource HintText}" Margin="0,10"/>
-                <TextBlock Text="Дата последнего входа: 01.02.2024" Style="{StaticResource HintText}" Margin="0,10"/>
-                <TextBlock Text="Активные сессии: 1" Style="{StaticResource HintText}" Margin="0,10"/>
+
+    <Grid Margin="10">
+      
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+
+                <TextBlock Text="ДАННЫЕ АККАУНТА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Основная почта" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="{Binding Email}" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="Регистрационная почта (OGE)" Style="{DynamicResource HeaderText}" Foreground="{StaticResource PrimaryBrush}"/>
+                                <TextBlock Text="{Binding NewEmail, FallbackValue='—'}" Style="{DynamicResource HintText}"/>
+                                <TextBlock Text="Используется для восстановления при взломе" FontSize="10" Opacity="0.6" Foreground="{DynamicResource GrayBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="СМЕНА ПАРОЛЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <TextBlock Text="Текущий пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
+                        <Border CornerRadius="8"
+                Background="{DynamicResource InputPanelBackgroundBrush}"
+                BorderBrush="{DynamicResource InputPanelBorderBrush}" 
+                BorderThickness="1"
+                Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="🔒" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0"
+                           Foreground="{DynamicResource PlaceholderBrush}"/>
+
+                                <Grid Grid.Column="1">
+                                    <PasswordBox x:Name="CurrentPasswordBox" 
+                                 Background="Transparent"
+                                 Foreground="{DynamicResource TextBrush}" 
+                                 BorderThickness="0"
+                                 Padding="0,10,10,10" 
+                                 VerticalContentAlignment="Center"
+                                 CaretBrush="{DynamicResource PrimaryBrush}"
+                             >  </PasswordBox>
+                                    <TextBlock x:Name="CurrentPasswordPlaceholder" Text="Введите текущий пароль" IsHitTestVisible="False"
+                               Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center"
+                               Margin="2,0,10,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CurrentPassword}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding CurrentPassword}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="Новый пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
+                        <TextBox Style="{DynamicResource ModernTextBox}" Tag="Минимум 8 символов" 
+                 Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" Height="40"/>
+
+                        <TextBlock Text="Повторите пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
+                        <TextBox Style="{DynamicResource ModernTextBox}" Tag="Повторите новый пароль"
+                 Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20" Height="40"/>
+
+                        <Button Content="ОБНОВИТЬ ПАРОЛЬ" 
+                Command="{Binding ChangePasswordCommand}"
+                Style="{StaticResource PrimaryButtonStyle}" 
+                Height="40" HorizontalAlignment="Stretch"/>
+
+                        <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
+                            <ProgressBar.Style>
+                                <Style TargetType="ProgressBar">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChangingPassword}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ProgressBar.Style>
+                        </ProgressBar>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-        </StackPanel>
+
+            <StackPanel Grid.Column="2">
+
+                <TextBlock Text="АКТИВНЫЕ СЕССИИ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Управление доступом" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="{Binding ActiveSessions, StringFormat='Всего активных устройств: {0}'}" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <Button Content="ВЫЙТИ СО ВСЕХ" 
+                                        Command="{Binding LogoutAllDevicesCommand}"
+                                        Style="{DynamicResource PrimaryButtonStyle}" 
+                                        Height="30" Padding="15,0" HorizontalAlignment="Right" FontSize="10"/>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Sessions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10,12" BorderBrush="{DynamicResource GrayBrush}" BorderThickness="0,1,0,0">
+                                        <Grid>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DeviceName}" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
+                                                <TextBlock Text="{Binding Location, StringFormat='📍 {0}'}" FontSize="11" Opacity="0.6"/>
+                                            </StackPanel>
+                                            <Button Content="Завершить" 
+                                                        HorizontalAlignment="Right"
+                                                        Command="{Binding DataContext.LogoutDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding SessionId}"
+                                                        Style="{StaticResource PrimaryButtonStyle}" 
+                                                        Height="30" Width="90" FontSize="10" Opacity="0.9"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="СЛУЖЕБНОЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="Очистка данных" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Удалить все токены и выйти из аккаунта" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <Button Content="СБРОС" Style="{StaticResource PrimaryButtonStyle}" 
+                                        Background="#44FF4B4B" Height="35" Width="100" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
     </Grid>
+
 </UserControl>

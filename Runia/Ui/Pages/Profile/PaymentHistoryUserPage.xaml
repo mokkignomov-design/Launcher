@@ -11,10 +11,8 @@
             <TextBlock Text="ИСТОРИЯ ПЛАТЕЖЕЙ" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,30"/>
 
             <StackPanel HorizontalAlignment="Left" Height="300" Width="500" Margin="10,0,0,0">
-                <TextBlock Text="Всего потрачено: 2500 RUB" Style="{StaticResource HintText}" Margin="0,10" FontSize="16" FontWeight="Bold"/>
-                <TextBlock Text="Последний платеж: 500 RUB - 01.02.2024" Style="{StaticResource HintText}" Margin="0,10"/>
-                <TextBlock Text="Платеж #2: 1000 RUB - 15.01.2024" Style="{StaticResource HintText}" Margin="0,10"/>
-                <TextBlock Text="Платеж #1: 1000 RUB - 20.12.2023" Style="{StaticResource HintText}" Margin="0,10"/>
+                <TextBlock Text="В РАЗРАБОТКЕ" Style="{StaticResource HintText}" Margin="0,10" FontSize="16" FontWeight="Bold"/>
+             
             </StackPanel>
         </StackPanel>
     </Grid>

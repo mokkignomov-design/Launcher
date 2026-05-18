@@ -68,49 +68,49 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Grid x:Name="TemplateRoot" SnapsToDevicePixels="true">
-                        <!-- Задний фон кольца -->
-                        <Ellipse Stroke="#22FFFFFF" StrokeThickness="3"/>
+                    <Grid x:Name="TemplateRoot" SnapsToDevicePixels="true" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <RotateTransform Angle="0"/>
+                        </Grid.RenderTransform>
 
-                        <!-- Фикс: используем Shape.StrokeDashArray для анимации -->
+                        <Ellipse Stroke="#11FFFFFF" StrokeThickness="3"/>
+
                         <Ellipse x:Name="AnimationElement" 
                              Stroke="{TemplateBinding Foreground}" 
                              StrokeThickness="3" 
-                             StrokeDashArray="1 100" 
-                             RenderTransformOrigin="0.5,0.5">
+                             StrokeDashCap="Round"
+                             RenderTransformOrigin="0.5,0.5"
+                             StrokeDashArray="4 18">
                             <Ellipse.RenderTransform>
                                 <RotateTransform Angle="0"/>
                             </Ellipse.RenderTransform>
                         </Ellipse>
                     </Grid>
+
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsIndeterminate" Value="true">
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="TemplateRoot"
+                                                     Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                                                     From="0" To="360" Duration="0:0:2"/>
+
+                                        <DoubleAnimation Storyboard.TargetName="AnimationElement"
+                                                     Storyboard.TargetProperty="StrokeDashOffset"
+                                                     From="0" To="-22" Duration="0:0:1.5">
+                                            <DoubleAnimation.EasingFunction>
+                                                <ExponentialEase Exponent="6" EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+
                                         <DoubleAnimation Storyboard.TargetName="AnimationElement"
                                                      Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
-                                                     From="0" To="360" Duration="0:0:1.5"/>
-
-                                        <!-- Фикс: анимация DashArray без запятых и с явным TargetProperty -->
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="AnimationElement"
-                                                                   Storyboard.TargetProperty="StrokeDashArray">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
-                                                <DiscreteObjectKeyFrame.Value>
-                                                    <DoubleCollection>1 100</DoubleCollection>
-                                                </DiscreteObjectKeyFrame.Value>
-                                            </DiscreteObjectKeyFrame>
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.75">
-                                                <DiscreteObjectKeyFrame.Value>
-                                                    <DoubleCollection>20 100</DoubleCollection>
-                                                </DiscreteObjectKeyFrame.Value>
-                                            </DiscreteObjectKeyFrame>
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:1.5">
-                                                <DiscreteObjectKeyFrame.Value>
-                                                    <DoubleCollection>1 100</DoubleCollection>
-                                                </DiscreteObjectKeyFrame.Value>
-                                            </DiscreteObjectKeyFrame>
-                                        </ObjectAnimationUsingKeyFrames>
+                                                     From="0" To="360" Duration="0:0:1.5">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseInOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>

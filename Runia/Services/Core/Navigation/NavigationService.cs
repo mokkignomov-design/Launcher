@@ -23,6 +23,18 @@ namespace Runia.Services.Core.Navigation
         {
             _host = host;
             _currentViewModel = null;
+            // Если host = null, то очищаем кэш (окно закрывается)
+            if (host == null)
+            {
+                ClearCache();
+            }
+        }
+
+        public void ClearCache()
+        {
+            Debug.WriteLine("[NavigationService] Clearing view cache");
+            _viewCache.Clear();
+            _currentViewModel = null;
         }
 
         public void RegisterMapping<TViewModel, TView>() where TView : FrameworkElement

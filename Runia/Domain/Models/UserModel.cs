@@ -7,6 +7,12 @@ namespace Runia.Domain.Models
         [JsonPropertyName("username")]
         public string Username { get; set; } = "Player";
 
+        [JsonPropertyName("skinUrl")]
+        public string? SkinUrl { get; set; }
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
         [JsonPropertyName("balance")]
         public decimal Balance { get; set; }
 
@@ -25,6 +31,9 @@ namespace Runia.Domain.Models
 
     public class UserStats
     {
+        [JsonPropertyName("donationBalance")]
+        public decimal DonationBalance { get; set; }
+
         [JsonPropertyName("playedHours")]
         public double PlayedHours { get; set; }
 
@@ -33,17 +42,32 @@ namespace Runia.Domain.Models
 
         [JsonPropertyName("deaths")]
         public int Deaths { get; set; }
+
+        [JsonPropertyName("role")]
+        public string Role { get; set; } = string.Empty;
+
+        [JsonPropertyName("level")]
+        public int Level { get; set; }
+
+        [JsonPropertyName("server")]
+        public string Server { get; set; } = string.Empty;
+
+        [JsonPropertyName("friendsCount")]
+        public int FriendsCount { get; set; }
     }
 
     public class UserActivity
     {
-        [JsonPropertyName("title")]
-        public string Title { get; set; } = string.Empty;
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
 
-        [JsonPropertyName("time")]
-        public string Time { get; set; } = string.Empty;
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
 
-        [JsonPropertyName("color")]
-        public string Color { get; set; } = "#55FF55";
+        [JsonPropertyName("data")]
+        public string Data { get; set; } = string.Empty;
+
+        [JsonPropertyName("createdAt")]
+        public DateTime CreatedAt { get; set; }
     }
 }

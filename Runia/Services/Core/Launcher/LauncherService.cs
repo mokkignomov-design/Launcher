@@ -2,14 +2,18 @@
 using CmlLib.Core.Auth;
 using CmlLib.Core.ProcessBuilder;
 using Runia.Services.Auth;
+using Runia.Services.Network.Clients;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Installers;
 using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
+
 
 namespace Runia.Services.Core.Launcher
 {
-    public class LauncherService(JavaManager javaManager, ForgeManager forgeManager, ModPackManager modPackManager, IAppConfig config, AuthService authService)
+    public class LauncherService(JavaManager javaManager, ForgeManager forgeManager, ModPackManager modPackManager, IAppConfig config, AuthService authService, SessionClient sessionClient)
     {
         public event Action? OnGameStarted;
         public event Action? OnGameExited;
@@ -19,6 +23,7 @@ namespace Runia.Services.Core.Launcher
         private readonly ModPackManager _modPackManager = modPackManager ?? throw new ArgumentNullException(nameof(modPackManager));
         private readonly IAppConfig _config = config ?? throw new ArgumentNullException(nameof(config));
         private readonly AuthService _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        private readonly SessionClient _sessionClient = sessionClient ?? throw new ArgumentNullException(nameof(sessionClient));
 
         public async Task LaunchPackAsync(string packName, IProgress<string>? logProgress, CancellationToken ct)
         {
@@ -66,8 +71,32 @@ namespace Runia.Services.Core.Launcher
                 ct.ThrowIfCancellationRequested();
 
                 string javaPath = await _javaManager.GetJavaPathAsync() ?? throw new Exception("Java not found");
-
                 string username = _authService.CurrentUser?.Name ?? "Player";
+
+                // ЧИСТЫЙ БЛОК АВТОРИЗАЦИИ: обновляем access token и получаем временный токен ДО создания процесса
+                var refreshed = false;
+                try
+                {
+                    refreshed = await _authService.RefreshTokenAsync(ct);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[LauncherService] Refresh token failed: {ex}");
+                }
+                if (!refreshed)
+                {
+                    logProgress?.Report("Ошибка авторизации: не удалось обновить токен");
+                    throw new Exception("Ошибка авторизации: не удалось обновить токен");
+                }
+
+                var sessionResult = await _sessionClient.CreateTemporarySessionAsync(ct);
+                if (!sessionResult.IsSuccess)
+                {
+                    var msg = sessionResult.ErrorMessage ?? "Ошибка авторизации при создании сессии";
+                    logProgress?.Report($"Ошибка авторизации: {msg}");
+                    throw new Exception($"Ошибка авторизации: {msg}");
+                }
+                var session = sessionResult.Data!;
 
                 var launchOption = new MLaunchOption
                 {
@@ -77,23 +106,48 @@ namespace Runia.Services.Core.Launcher
                     FullScreen = _config.IsFullscreen
                 };
 
+                // ИНИЦИАЛИЗАЦИЯ АРГУМЕНТОВ JAVA
+                var jvmArgs = new List<MArgument>();
                 if (!string.IsNullOrWhiteSpace(_config.JvmArguments))
                 {
-                    launchOption.ExtraJvmArguments = _config.JvmArguments
+                    jvmArgs.AddRange(_config.JvmArguments
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(arg => new MArgument(arg));
+                        .Select(arg => new MArgument(arg)));
                 }
+
+                // ВАЖНО: Добавляем токен как глобальную системную переменную Java (-D)
+                jvmArgs.Add(new MArgument($"-Drunia.temporaryKey={session.TemporaryKey}"));
+                launchOption.ExtraJvmArguments = jvmArgs;
+
+                // НАЙДИ В LAUNCHERSERVICE ЭТОТ КУСОК И ЗАМЕНИ:
 
                 logProgress?.Report("Creating process...");
                 var process = await launcher.CreateProcessAsync(versionId, launchOption);
 
                 ct.ThrowIfCancellationRequested();
 
-                process.StartInfo.Arguments = ConfigureArguments(process.StartInfo.Arguments, instancePath);
+                // Гарантированный проброс JVM-аргумента прямо в строку запуска процесса
+                string runiaJvmArg = $"-Drunia.temporaryKey={session.TemporaryKey}";
+                process.StartInfo.Arguments = $"{runiaJvmArg} {process.StartInfo.Arguments}";
+
+                // Накатываем твои пути
                 process.StartInfo.WorkingDirectory = instancePath;
+                process.StartInfo.Arguments = ConfigureArguments(process.StartInfo.Arguments, instancePath);
+
+                // ВЫВОДИМ ФИНАЛЬНУЮ СТРОКУ ЗАПУСКА В ДЕБАГ (Посмотришь в выводе VS/Rider)
+                Debug.WriteLine($"[RuniaLauncher] ФИНАЛЬНАЯ СТРОКА ЗАПУСКА: {process.StartInfo.FileName} {process.StartInfo.Arguments}");
+                logProgress?.Report($"Запуск с ключом: {session.TemporaryKey}");
 
                 process.StartInfo.UseShellExecute = _config.ShowConsole;
                 process.StartInfo.CreateNoWindow = !_config.ShowConsole;
+                // Внутри твоего LaunchService перед запуском процесса:
+                string sessionFilePath = Path.Combine(instancePath, "runia_session.json");
+                var sessionData = new { token = session.TemporaryKey };
+                string json = JsonSerializer.Serialize(sessionData);
+
+                // Записываем файл (если остался старый — перезапишется)
+                File.WriteAllText(sessionFilePath, json);
+
 
                 if (process.Start())
                 {
@@ -117,11 +171,7 @@ namespace Runia.Services.Core.Launcher
                         }
                         catch (OperationCanceledException)
                         {
-                            try
-                            {
-                                if (!process.HasExited) process.Kill(entireProcessTree: true);
-                            }
-                            catch { }
+                            try { if (!process.HasExited) process.Kill(entireProcessTree: true); } catch { }
                         }
                         finally
                         {

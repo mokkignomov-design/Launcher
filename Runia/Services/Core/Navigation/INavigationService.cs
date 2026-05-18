@@ -10,6 +10,7 @@ namespace Runia.Services.Core.Navigation
 
         void SetHost(object? host);
         void RegisterMapping<TViewModel, TView>() where TView : System.Windows.FrameworkElement;
+        void ClearCache();
 
         // Оставляем только три четких метода
         void NavigateTo(object? viewModel); // Базовый по объекту
