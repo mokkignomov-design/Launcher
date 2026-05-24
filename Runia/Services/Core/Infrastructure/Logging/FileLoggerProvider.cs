@@ -3,15 +3,10 @@ using System;
 
 namespace Runia.Services.Core.Infrastructure.Logging;
 
-internal class FileLoggerProvider : ILoggerProvider
+internal class FileLoggerProvider(string filePath) : ILoggerProvider
 {
-    private readonly string _filePath;
-    private readonly object _fileLock = new object();
-
-    public FileLoggerProvider(string filePath)
-    {
-        _filePath = filePath;
-    }
+    private readonly string _filePath = filePath;
+    private readonly object _fileLock = new();
 
     public ILogger CreateLogger(string categoryName)
     {

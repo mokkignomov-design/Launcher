@@ -91,6 +91,7 @@
 
   <ItemGroup>
     <Folder Include="Services\Core\Infrastructure\WPF\Converters\" />
+    <Folder Include="Services\Network\" />
     <Folder Include="ViewModels\Profile\" />
   </ItemGroup>
 

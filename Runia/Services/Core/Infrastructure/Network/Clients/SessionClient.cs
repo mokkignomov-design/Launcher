@@ -1,9 +1,8 @@
 using Runia.Domain.Models;
-using Runia.Services.Core.Infrastructure.Network;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Runia.Services.Network.Clients;
+namespace Runia.Services.Core.Infrastructure.Network.Clients;
 
 public class SessionClient(BaseApiService apiService)
 {

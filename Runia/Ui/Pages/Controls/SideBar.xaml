@@ -136,7 +136,7 @@
                     </i:Interaction.Triggers>
                     <Grid Width="230" HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
-                            <TextBlock Text="💾" Style="{StaticResource NavEmojiStyle}"/>
+                            <TextBlock Text="🖥" Style="{StaticResource NavEmojiStyle}"/>
                             <TextBlock x:Name="ServersLabel" Text="Серверы" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                         </StackPanel>
                     </Grid>

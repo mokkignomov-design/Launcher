@@ -5,12 +5,12 @@ using Runia.Services.Common;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Core.Navigation;
 using Runia.Services.Core.Launcher;
-using Runia.Services.Network.Clients;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Runia.Services.Core.Infrastructure.Network.Clients;
 
 namespace Runia.ViewModels.Main
 {

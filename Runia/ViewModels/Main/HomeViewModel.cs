@@ -4,10 +4,10 @@ using Runia.Domain.Models;
 using Runia.Services.Core.Infrastructure.Network;
 using Runia.Services.Common;
 using Runia.Services.Core.Navigation;
-using Runia.Services.Network.Clients;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows.Input;
+using Runia.Services.Core.Infrastructure.Network.Clients;
 
 namespace Runia.ViewModels.Main
 {

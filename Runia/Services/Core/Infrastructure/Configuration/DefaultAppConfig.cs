@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Runia.Domain.Models; 
 using Runia.Services.Core.Launcher;
 
@@ -19,10 +20,51 @@ namespace Runia.Services.Core.Infrastructure.Configuration
     /// ВНИМАНИЕ БЕЗОПАСНОСТИ: Этот класс НЕ содержит методов для управления Username, AccessToken или RefreshToken.
     /// Все данные аутентификации полностью управляются AuthService и защищены в SecureTokenStore с использованием DPAPI.
     /// </summary>
-    public class DefaultAppConfig(IHttpClientFactory httpFactory, ILogger<DefaultAppConfig> logger) : IAppConfig
+    public class DefaultAppConfig : IAppConfig
     {
-        private readonly HttpClient _httpClient = httpFactory.CreateClient("Api");
-        private readonly ILogger<DefaultAppConfig> _logger = logger;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<DefaultAppConfig> _logger;
+        private string? _appSettingsApiBase;
+
+        public DefaultAppConfig()
+        {
+            _httpClient = new HttpClient();
+            _logger = NullLogger<DefaultAppConfig>.Instance;
+            InitAppSettingsFromFile();
+        }
+
+        public DefaultAppConfig(IHttpClientFactory httpFactory, ILogger<DefaultAppConfig> logger)
+        {
+            _httpClient = httpFactory.CreateClient("Api");
+            _logger = logger;
+            InitAppSettingsFromFile();
+        }
+
+        private void InitAppSettingsFromFile()
+        {
+            try
+            {
+                var basePath = AppContext.BaseDirectory;
+                var cfgPath = Path.Combine(basePath, "appsettings.json");
+                if (File.Exists(cfgPath))
+                {
+                    var txt = File.ReadAllText(cfgPath);
+                    using var doc = JsonDocument.Parse(txt);
+                    if (doc.RootElement.TryGetProperty("Runia", out var runia) && runia.TryGetProperty(nameof(ApiBaseUrl), out var url))
+                    {
+                        // assign to backing field via reflection to satisfy readonly semantics
+                        // but since _appSettingsApiBase is readonly, assign directly here in constructor flow
+                        // this method is only called from constructors
+                        _appSettingsApiBase = url.GetString();
+                    }
+                }
+            }
+            catch
+            {
+                // keep _appSettingsApiBase as null
+                _appSettingsApiBase = null;
+            }
+        }
         private List<ServerPack>? _cachedServers;
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -30,7 +72,17 @@ namespace Runia.Services.Core.Infrastructure.Configuration
             PropertyNameCaseInsensitive = true
         };
 
-        public string ApiBaseUrl => "https://api.runia.su/";
+        private const string EnvVarApiBase = "RUNIA_API_BASE_URL";
+        public string ApiBaseUrl
+        {
+            get
+            {
+                var env = Environment.GetEnvironmentVariable(EnvVarApiBase);
+                if (!string.IsNullOrWhiteSpace(env)) return env.EndsWith("/") ? env : env + "/";
+                if (!string.IsNullOrWhiteSpace(_appSettingsApiBase)) return _appSettingsApiBase!.EndsWith("/") ? _appSettingsApiBase! : _appSettingsApiBase! + "/";
+                return "https://api.runia.su/";
+            }
+        }
         public int RamAmount => Runia.Properties.Settings.Default.RamAmount * 1024;
         public bool ShowConsole => Runia.Properties.Settings.Default.ShowConsole;
         public bool IsFullscreen => Runia.Properties.Settings.Default.IsFullscreen;

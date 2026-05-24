@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Runia.Services.Common;
 using Runia.Services.Core.Infrastructure.Configuration;
+using Runia.Services.Core.Infrastructure.Network.Clients;
 using Runia.Services.Core.Navigation;
-using Runia.Services.Network.Clients;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -94,6 +94,12 @@ namespace Runia.ViewModels.Main
                     Server = profileResult.Data.Stats?.Server ?? string.Empty;
                     FriendsCount = profileResult.Data.Stats?.FriendsCount ?? 0;
                     RegDate = profileResult.Data.RegistrationDate.ToString("dd.MM.yyyy");
+
+                    var lastLaunched = Runia.Properties.Settings.Default.LastLaunchedServer;
+                    if (!string.IsNullOrEmpty(lastLaunched))
+                    {
+                        Server = lastLaunched;
+                    }
 
                     _logger.LogInformation("[UserViewModel] Profile loaded: {Username}", Username);
                 }

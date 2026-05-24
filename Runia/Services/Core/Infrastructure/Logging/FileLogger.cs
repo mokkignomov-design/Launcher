@@ -5,18 +5,11 @@ using System.Text;
 
 namespace Runia.Services.Core.Infrastructure.Logging;
 
-internal class FileLogger : ILogger, IDisposable
+internal class FileLogger(string category, string filePath, object fileLock) : ILogger, IDisposable
 {
-    private readonly string _category;
-    private readonly string _filePath;
-    private readonly object _fileLock;
-
-    public FileLogger(string category, string filePath, object fileLock)
-    {
-        _category = category;
-        _filePath = filePath;
-        _fileLock = fileLock;
-    }
+    private readonly string _category = category;
+    private readonly string _filePath = filePath;
+    private readonly object _fileLock = fileLock;
 
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 

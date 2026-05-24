@@ -1,16 +1,15 @@
 using Runia.Domain.Models;
-using Runia.Services.Core.Infrastructure.Network;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Runia.Services.Network.Clients;
-public class UserClient(BaseApiService apiService, Runia.Services.Core.Infrastructure.Network.ITokenStore tokenStore, Runia.Services.Auth.AuthService authService)
+namespace Runia.Services.Core.Infrastructure.Network.Clients;
+public class UserClient(BaseApiService apiService, ITokenStore tokenStore, Auth.AuthService authService)
 {
     private readonly BaseApiService _apiService = apiService;
-    private readonly Runia.Services.Core.Infrastructure.Network.ITokenStore _tokenStore = tokenStore;
-    private readonly Runia.Services.Auth.AuthService _authService = authService;
+    private readonly ITokenStore _tokenStore = tokenStore;
+    private readonly Auth.AuthService _authService = authService;
     private const string BaseEndpoint = "/api/users";
 
     public async Task<ApiResult<UserProfile>> GetCurrentUserProfileAsync(CancellationToken ct = default)

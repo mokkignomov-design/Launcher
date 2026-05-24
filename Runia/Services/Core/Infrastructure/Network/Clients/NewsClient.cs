@@ -1,13 +1,15 @@
+using System.Collections.Generic;
+using System.Linq;
 using Runia.Domain.Models;
-using Runia.Services.Core.Infrastructure.Network;
+using System.Threading;
+using System.Threading.Tasks;
 
+namespace Runia.Services.Core.Infrastructure.Network.Clients;
 
-namespace Runia.Services.Network.Clients;
-
-public class NewsClient(BaseApiService apiService, Core.Infrastructure.ILocalDataService? localData = null)
+public class NewsClient(BaseApiService apiService, ILocalDataService? localData = null)
 {
     private readonly BaseApiService _apiService = apiService;
-    private readonly Core.Infrastructure.ILocalDataService? _localData = localData;
+    private readonly ILocalDataService? _localData = localData;
     private const string BaseEndpoint = "/api/launcher/news";
     private const string NewsFileName = "news.json";
         public async Task<ApiResult<IEnumerable<NewsItem>>> GetNewsAsync(CancellationToken ct = default)
@@ -21,7 +23,7 @@ public class NewsClient(BaseApiService apiService, Core.Infrastructure.ILocalDat
             );
         }
 
-        var items = result.Data?.News ?? new List<NewsItem>();
+        var items = result.Data?.News ?? [];
 
         if (_localData != null && items != null)
         {
@@ -70,7 +72,7 @@ public class NewsClient(BaseApiService apiService, Core.Infrastructure.ILocalDat
             );
         }
         var response = result.Data;
-        var items = response?.News ?? new List<NewsItem>();
+        var items = response?.News ?? [];
 
         if (_localData != null && items != null)
         {
@@ -81,10 +83,11 @@ public class NewsClient(BaseApiService apiService, Core.Infrastructure.ILocalDat
             catch { /* Ошибка кэша не критична */ }
         }
 
+      
         var paginated = new PaginatedNews
         {
-            Items = items,
-            TotalCount = items.Count,
+            Items = items!, 
+            TotalCount = items!.Count, 
             PageNumber = page,
             PageSize = pageSize
         };

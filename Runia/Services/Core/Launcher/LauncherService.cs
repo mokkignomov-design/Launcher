@@ -2,13 +2,13 @@
 using CmlLib.Core.Auth;
 using CmlLib.Core.ProcessBuilder;
 using Runia.Services.Auth;
-using Runia.Services.Network.Clients;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Installers;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using Runia.Services.Core.Infrastructure.Network.Clients;
 
 
 namespace Runia.Services.Core.Launcher
@@ -148,11 +148,51 @@ namespace Runia.Services.Core.Launcher
                 // Записываем файл (если остался старый — перезапишется)
                 File.WriteAllText(sessionFilePath, json);
 
+                // ==================== ДОБАВЛЯЕМ ПРЕДУСТАНОВКУ СКИНООБЕСПЕЧЕНИЯ (ЧЕРЕЗ EXTRALIST) ====================
+                try
+                {
+                    // CSL ищет ExtraList по пути: .minecraft/CustomSkinLoader/ExtraList/
+                    string extraListDir = Path.Combine(instancePath, "CustomSkinLoader", "ExtraList");
+                    if (!Directory.Exists(extraListDir))
+                    {
+                        Directory.CreateDirectory(extraListDir);
+                    }
+
+                    // Имя файла может быть любым, например, runia.json
+                    string extraListPath = Path.Combine(extraListDir, "runia.json");
+
+                    // Формат объекта ExtraList полностью соответствует элементу из loadlist
+                    var runiaExtraSkinSource = new
+                    {
+                        name = "RuniaSkinAPI",
+                        type = "CustomSkinAPI",
+                        root = "https://api.runia.su/api/v1/skins/info/"
+                    };
+
+                    string extraListJson = JsonSerializer.Serialize(runiaExtraSkinSource, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(extraListPath, extraListJson);
+
+                    Debug.WriteLine("[RuniaLauncher] Файл ExtraList для CustomSkinLoader успешно создан.");
+                }
+                catch (Exception ex)
+                {
+                    // Ошибки записи во вспомогательный конфиг скинов не должны крашить запуск самой игры
+                    Debug.WriteLine($"[ERROR] Не удалось создать ExtraList для CustomSkinLoader: {ex.Message}");
+                }
+                // ====================================================================================================
+
 
                 if (process.Start())
                 {
                     logProgress?.Report("Game started");
                     OnGameStarted?.Invoke();
+
+                    try
+                    {
+                        Runia.Properties.Settings.Default.LastLaunchedServer = packName;
+                        Runia.Properties.Settings.Default.Save();
+                    }
+                    catch { }
 
                     if (Runia.Properties.Settings.Default.AutoCloseLauncher)
                     {

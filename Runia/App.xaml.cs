@@ -8,13 +8,14 @@ using Runia.Services.Core.Launcher;
 using Runia.Services.Core.Navigation;
 using Runia.Services.Core.Infrastructure.Network;
 using Runia.Services.Installers;
-using Runia.Services.Network.Clients;
 using System.IO;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Runia.Services.Core.Infrastructure.Logging;
 using Runia.ViewModels.Main;
 using Runia.ViewModels.Windows;
 using System.Windows;
+using Runia.Services.Core.Infrastructure.Network.Clients;
 
 namespace Runia
 {
@@ -23,7 +24,7 @@ namespace Runia
         public static IServiceProvider Services { get; private set; } = null!;
         private IHost? _host;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -152,9 +153,45 @@ namespace Runia
             }
             catch { }
 
-            var loginWindow = Services.GetRequiredService<Runia.Ui.Windows.LoginWindow>();
-            loginWindow.DataContext = Services.GetRequiredService<LoginWindowViewModel>();
-            loginWindow.Show();
+            // Попытка автологина: если есть сохранённые токены (Remember=true), загрузим их и попробуем обновить
+            try
+            {
+                var auth = Services.GetRequiredService<AuthService>();
+                var dialog = Services.GetRequiredService<IDialogService>();
+
+                var loadResult = await auth.LoadAndRefreshTokensAsync().ConfigureAwait(false);
+                if (loadResult == AuthResult.Success)
+                {
+                    // Попробуем обновить токен сразу при старте
+                    var refreshed = await auth.RefreshTokenAsync().ConfigureAwait(false);
+                    // Поскольку мы в ConfigureAwait(false), переключаемся обратно на UI-поток для работы с окнами
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        if (refreshed)
+                        {
+                            dialog.ShowMainWindow();
+                        }
+                        else
+                        {
+                            dialog.ShowLoginWindow();
+                        }
+                    });
+                }
+                else
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(() => dialog.ShowLoginWindow());
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[App] Auto-login failed: {ex}");
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    var loginWindow = Services.GetRequiredService<Runia.Ui.Windows.LoginWindow>();
+                    loginWindow.DataContext = Services.GetRequiredService<LoginWindowViewModel>();
+                    loginWindow.Show();
+                });
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)

@@ -126,14 +126,14 @@
 
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="ВИЗУАЛИЗАЦИЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
-                        <Border Style="{StaticResource CharacterCardStyle}" Height="450">
+                        <Border Style="{StaticResource CharacterCardStyle}" Height="500" Width="350">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <controls:SkinView x:Name="PlayerPreview" SkinPath="{Binding SkinPath}" Margin="20"/>
+                                <controls:SkinView x:Name="PlayerPreview" SkinPath="{Binding SkinPath}" Margin="-20"/>
 
                                 <StackPanel Grid.Row="1" Margin="20">
                                     <Button Content="ИЗМЕНИТЬ СКИН" 

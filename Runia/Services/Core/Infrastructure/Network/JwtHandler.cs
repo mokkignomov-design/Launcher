@@ -3,35 +3,41 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Runia.Services.Auth;
-public class JwtHandler(IServiceProvider serviceProvider, ILogger<JwtHandler> logger) : DelegatingHandler
+
+namespace Runia.Services.Core.Infrastructure.Network
 {
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+    public class JwtHandler(IServiceProvider serviceProvider, ILogger<JwtHandler> logger) : DelegatingHandler
     {
-        // Достаем AuthService только тогда, когда реально летит запрос
-        var auth = serviceProvider.GetRequiredService<AuthService>();
-        var access = auth.AccessToken;
-        logger.LogInformation("DEBUG_AUTH: Sending request to {Uri}. Token length: {Len}. First 10 chars: {Start}...",
-            request.RequestUri,
-            access?.Length ?? 0,
-            access?[..Math.Min(10, access?.Length ?? 0)] ?? "NULL");
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            // Достаем AuthService только тогда, когда реально летит запрос
+            var auth = serviceProvider.GetRequiredService<AuthService>();
+            var access = auth.AccessToken;
+            var hasToken = !string.IsNullOrWhiteSpace(access);
+            var length = access?.Length ?? 0;
+            logger.LogInformation("DEBUG_AUTH: Sending request to {Uri}. Token present: {HasToken}. Token length: {Len}.",
+                request.RequestUri,
+                hasToken,
+                length);
 
-        if (!string.IsNullOrWhiteSpace(access))
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
-        }
-        else
-        {
-            request.Headers.Authorization = null;
-        }
+            if (!string.IsNullOrWhiteSpace(access))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+            }
+            else
+            {
+                request.Headers.Authorization = null;
+            }
 
-        try
-        {
-            return await base.SendAsync(request, ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "JwtHandler: Error sending request to {Uri}", request.RequestUri);
-            throw;
+            try
+            {
+                return await base.SendAsync(request, ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "JwtHandler: Error sending request to {Uri}", request.RequestUri);
+                throw;
+            }
         }
     }
 }

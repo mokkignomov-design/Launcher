@@ -28,8 +28,14 @@ namespace Runia.Services.Common
         [JsonPropertyName("url")]
         public string Url { get; set; } = string.Empty;
 
+        [JsonPropertyName("skin")]
+        public string Skin { get; set; } = string.Empty;
+
         [JsonPropertyName("hash")]
         public string Hash { get; set; } = string.Empty;
+
+        [JsonPropertyName("model")]
+        public string Model { get; set; } = "default";
     }
 
     public class SkinService : ISkinService
@@ -45,6 +51,8 @@ namespace Runia.Services.Common
 
         private const string LAST_SELECTED_FILE = "last_selected_skin.json";
         private const int CACHE_EXPIRY_DAYS = 30;
+
+        private static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
         public SkinService(
             BaseApiService api,
@@ -67,15 +75,95 @@ namespace Runia.Services.Common
         {
             if (string.IsNullOrWhiteSpace(username)) return null;
 
-            var result = await _api.GetAsync<SkinInfoResponse>($"/api/v1/skins/info/{username}");
+            var result = await _api.GetAsync<JsonElement>($"/api/v1/skins/info/{username}");
 
-            if (result.IsSuccess && result.Data != null && !string.IsNullOrWhiteSpace(result.Data.Url))
+            if (!result.IsSuccess || result.Data.ValueKind == JsonValueKind.Undefined)
             {
-                return result.Data;
+                _logger.LogInformation("Skin info missing or API error for {Username}: {Error}. Returning null.", username, result.ErrorMessage);
+                return null;
             }
 
-            _logger.LogInformation("Skin info missing or API error for {Username}: {Error}. Returning null.", username, result.ErrorMessage);
-            return null;
+            var el = result.Data;
+            var info = new SkinInfoResponse();
+
+            // Поддерживаем несколько форматов ответа:
+            // 1) launcher/{username} -> { username, url, model }
+            // 2) CustomSkinAPI -> { username, skins: { default: "file.png" }, models: { default: "default" }, hash }
+            if (el.TryGetProperty("url", out var urlEl) && urlEl.ValueKind == JsonValueKind.String)
+            {
+                info.Url = urlEl.GetString() ?? string.Empty;
+            }
+
+            // skins -> взять default или первый
+            if (el.TryGetProperty("skins", out var skinsEl) && skinsEl.ValueKind == JsonValueKind.Object)
+            {
+                if (skinsEl.TryGetProperty("default", out var d) && d.ValueKind == JsonValueKind.String)
+                {
+                    info.Skin = d.GetString() ?? string.Empty;
+                }
+                else
+                {
+                    foreach (var p in skinsEl.EnumerateObject())
+                    {
+                        if (p.Value.ValueKind == JsonValueKind.String)
+                        {
+                            info.Skin = p.Value.GetString() ?? string.Empty;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // models -> default or first
+            if (el.TryGetProperty("model", out var modelEl) && modelEl.ValueKind == JsonValueKind.String)
+            {
+                info.Model = modelEl.GetString() ?? "default";
+            }
+            else if (el.TryGetProperty("models", out var modelsEl) && modelsEl.ValueKind == JsonValueKind.Object)
+            {
+                if (modelsEl.TryGetProperty("default", out var md) && md.ValueKind == JsonValueKind.String)
+                {
+                    info.Model = md.GetString() ?? "default";
+                }
+                else
+                {
+                    foreach (var p in modelsEl.EnumerateObject())
+                    {
+                        if (p.Value.ValueKind == JsonValueKind.String)
+                        {
+                            info.Model = p.Value.GetString() ?? "default";
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (el.TryGetProperty("hash", out var hashEl) && hashEl.ValueKind == JsonValueKind.String)
+            {
+                info.Hash = hashEl.GetString() ?? string.Empty;
+            }
+
+            // Если есть только имя файла (skin) — конструируем полный URL к текстуре через API base
+            if (string.IsNullOrWhiteSpace(info.Url) && !string.IsNullOrWhiteSpace(info.Skin))
+            {
+                if (info.Skin.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    info.Url = info.Skin;
+                }
+                else
+                {
+                    var baseUrl = _config.ApiBaseUrl?.TrimEnd('/') ?? string.Empty;
+                    info.Url = $"{baseUrl}/api/v1/skins/info/textures/{info.Skin.TrimStart('/')}";
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(info.Url))
+            {
+                _logger.LogInformation("Skin info missing or API error for {Username}: {Error}. Returning null.", username, result.ErrorMessage);
+                return null;
+            }
+
+            return info;
         }
 
         public async Task<bool> UploadSkinAsync(string filePath, string username)
@@ -186,7 +274,7 @@ namespace Runia.Services.Common
                 var lastSelected = new LastSelectedSkin { Username = username, LocalPath = localPath, SelectedAt = DateTime.Now };
                 string filePath = Path.Combine(_config.GameRootPath, "Cache", LAST_SELECTED_FILE);
 
-                var json = JsonSerializer.Serialize(lastSelected, new JsonSerializerOptions { WriteIndented = true });
+                var json = JsonSerializer.Serialize(lastSelected, s_jsonOptions);
                 await File.WriteAllTextAsync(filePath, json);
             }
             catch (Exception ex)

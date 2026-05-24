@@ -1,12 +1,11 @@
 using Runia.Domain.Models;
-using Runia.Services.Core.Infrastructure.Network;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
-namespace Runia.Services.Network.Clients;
+namespace Runia.Services.Core.Infrastructure.Network.Clients;
 
 public class ServersResponse
 {

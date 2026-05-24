@@ -34,7 +34,19 @@ namespace Runia.Properties {
                 this["LastTheme"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastLaunchedServer {
+            get {
+                return ((string)(this["LastLaunchedServer"]));
+            }
+            set {
+                this["LastLaunchedServer"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]

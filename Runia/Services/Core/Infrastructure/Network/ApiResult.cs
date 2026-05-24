@@ -1,4 +1,4 @@
-namespace Runia.Services.Network;
+﻿namespace Runia.Services.Core.Infrastructure.Network;
 
 /// <summary>
 /// Кастомный результат API операции, содержит данные или ошибку.
