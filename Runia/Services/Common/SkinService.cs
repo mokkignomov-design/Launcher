@@ -52,7 +52,7 @@ namespace Runia.Services.Common
         private const string LAST_SELECTED_FILE = "last_selected_skin.json";
         private const int CACHE_EXPIRY_DAYS = 30;
 
-        private static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        private static readonly JsonSerializerOptions s_jsonOptions = new() { WriteIndented = true };
 
         public SkinService(
             BaseApiService api,

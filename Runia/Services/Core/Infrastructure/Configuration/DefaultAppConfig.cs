@@ -78,8 +78,8 @@ namespace Runia.Services.Core.Infrastructure.Configuration
             get
             {
                 var env = Environment.GetEnvironmentVariable(EnvVarApiBase);
-                if (!string.IsNullOrWhiteSpace(env)) return env.EndsWith("/") ? env : env + "/";
-                if (!string.IsNullOrWhiteSpace(_appSettingsApiBase)) return _appSettingsApiBase!.EndsWith("/") ? _appSettingsApiBase! : _appSettingsApiBase! + "/";
+                if (!string.IsNullOrWhiteSpace(env)) return env.EndsWith('/') ? env : env + "/";
+                if (!string.IsNullOrWhiteSpace(_appSettingsApiBase)) return _appSettingsApiBase!.EndsWith('/') ? _appSettingsApiBase! : _appSettingsApiBase! + "/";
                 return "https://api.runia.su/";
             }
         }

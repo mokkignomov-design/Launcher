@@ -24,11 +24,16 @@ namespace Runia.Services.Core.Launcher
         private readonly IAppConfig _config = config ?? throw new ArgumentNullException(nameof(config));
         private readonly AuthService _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         private readonly SessionClient _sessionClient = sessionClient ?? throw new ArgumentNullException(nameof(sessionClient));
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            WriteIndented = true
+        };
 
         public async Task LaunchPackAsync(string packName, IProgress<string>? logProgress, CancellationToken ct)
         {
             try
             {
+
                 ct.ThrowIfCancellationRequested();
 
                 var servers = await _config.GetServersAsync();
@@ -169,7 +174,7 @@ namespace Runia.Services.Core.Launcher
                         root = "https://api.runia.su/api/v1/skins/info/"
                     };
 
-                    string extraListJson = JsonSerializer.Serialize(runiaExtraSkinSource, new JsonSerializerOptions { WriteIndented = true });
+                    string extraListJson = JsonSerializer.Serialize(runiaExtraSkinSource, _jsonOptions);
                     File.WriteAllText(extraListPath, extraListJson);
 
                     Debug.WriteLine("[RuniaLauncher] Файл ExtraList для CustomSkinLoader успешно создан.");

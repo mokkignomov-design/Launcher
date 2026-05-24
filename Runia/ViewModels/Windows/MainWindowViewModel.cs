@@ -70,7 +70,7 @@ namespace Runia.ViewModels.Windows
                         {
                             // Логика разделения текста: 
                             // Если в логе есть проценты или инфа о скачке — кидаем в мелкий шрифт (CurrentFileName)
-                            if (msg.Contains("%") || msg.Contains("Downloading"))
+                            if (msg.Contains('%') || msg.Contains("Downloading"))
                             {
                                 // Парсируем процент из сообщения (например: "Downloading: 45.5%")
                                 int? percent = ExtractPercentage(msg);
@@ -133,12 +133,16 @@ namespace Runia.ViewModels.Windows
         /// Извлекает процент из строки сообщения.
         /// Примеры: "Downloading: 45.5%" -> 45, "Progress: 123%" -> 100 (после ограничения)
         /// </summary>
+        // Добавьте этот атрибут (генерирует код во время компиляции)
+        [GeneratedRegex(@"(\d+(?:\.\d+)?)\s*%")]
+        private static partial Regex PercentageRegex();
+
         private static int? ExtractPercentage(string message)
         {
             try
             {
-                // Регулярное выражение для поиска числа с опциональной точкой и процентом
-                var match = Regex.Match(message, @"(\d+(?:\.\d+)?)\s*%");
+                // Теперь используем сгенерированный метод вместо создания нового объекта Regex
+                var match = PercentageRegex().Match(message);
                 if (match.Success && double.TryParse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture, out double percent))
                 {
                     return (int)Math.Round(percent);
