@@ -35,6 +35,8 @@
 
                         <StackPanel Orientation="Horizontal">
                             <Button Content="База знаний" Style="{StaticResource PrimaryButtonStyle}" 
+                                        Command="{Binding OpenUrlCommand}"
+    CommandParameter="https://runia.su/"
                                     Padding="25,12" Margin="0,0,20,0"/>
                             <Button Style="{StaticResource SocialButtonStyle}" 
         Command="{Binding OpenUrlCommand}"

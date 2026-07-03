@@ -94,7 +94,7 @@
                                             <TextBlock Text="{Binding Balance, StringFormat='{}{0} ₽'}" 
                                                        Foreground="{StaticResource PrimaryBrush}" 
                                                        FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
-                                            <Button Content="Пополнить" Style="{StaticResource PrimaryButtonStyle}" Height="40" HorizontalAlignment="Stretch"/>
+                                            <Button Content="Скоро!" Style="{StaticResource PrimaryButtonStyle}" Height="40" HorizontalAlignment="Stretch"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -109,16 +109,16 @@
                                     <TextBlock Text="{Binding PlayedHours, StringFormat='{}{0} ч.'}" Style="{StaticResource HeaderText}" FontSize="16"/>
                                 </StackPanel>
                                 <StackPanel Margin="10">
-                                    <TextBlock Text="Уровень" Style="{StaticResource HintText}"/>
-                                    <TextBlock Text="{Binding Level, StringFormat='{}{0} lvl'}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                    <TextBlock Text="Роль" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding Role}" Style="{StaticResource HeaderText}" FontSize="16"/>
                                 </StackPanel>
                                 <StackPanel Margin="10">
-                                    <TextBlock Text="Сервер" Style="{StaticResource HintText}"/>
-                                    <TextBlock Text="{Binding Server}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                    <TextBlock Text="Убийств" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding Kills}" Style="{StaticResource HeaderText}" FontSize="16"/>
                                 </StackPanel>
                                 <StackPanel Margin="10">
-                                    <TextBlock Text="Друзей" Style="{StaticResource HintText}"/>
-                                    <TextBlock Text="{Binding FriendsCount}" Style="{StaticResource HeaderText}" FontSize="16"/>
+                                    <TextBlock Text="Смертей" Style="{StaticResource HintText}"/>
+                                    <TextBlock Text="{Binding Deaths}" Style="{StaticResource HeaderText}" FontSize="16"/>
                                 </StackPanel>
                             </UniformGrid>
                         </Border>

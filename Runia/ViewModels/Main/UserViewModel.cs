@@ -62,9 +62,9 @@ namespace Runia.ViewModels.Main
         [ObservableProperty] private string regDate = string.Empty;
         [ObservableProperty] private string balance = string.Empty;
         [ObservableProperty] private double playedHours;
-        [ObservableProperty] private int level;
-        [ObservableProperty] private string server = string.Empty;
-        [ObservableProperty] private int friendsCount;
+        [ObservableProperty] private int kills;
+        [ObservableProperty] private int deaths;
+        [ObservableProperty] private string role = string.Empty;
         [ObservableProperty] private bool isLoadingProfile;
         [ObservableProperty] private BitmapSource? skinSource;
         [ObservableProperty] private string skinPath = string.Empty;
@@ -90,16 +90,13 @@ namespace Runia.ViewModels.Main
                     Balance = donation.ToString("F2");
 
                     PlayedHours = profileResult.Data.Stats?.PlayedHours ?? 0;
-                    Level = profileResult.Data.Stats?.Level ?? 0;
-                    Server = profileResult.Data.Stats?.Server ?? string.Empty;
-                    FriendsCount = profileResult.Data.Stats?.FriendsCount ?? 0;
+                    Kills = profileResult.Data.Stats?.Kills ?? 0;
+                    Deaths = profileResult.Data.Stats?.Deaths ?? 0;
+                    Role = profileResult.Data.Stats?.Role ?? string.Empty;
                     RegDate = profileResult.Data.RegistrationDate.ToString("dd.MM.yyyy");
 
-                    var lastLaunched = Runia.Properties.Settings.Default.LastLaunchedServer;
-                    if (!string.IsNullOrEmpty(lastLaunched))
-                    {
-                        Server = lastLaunched;
-                    }
+                    // Previously there was an override of Server from settings; not required because server information
+                    // is not returned by current backend profile stats.
 
                     _logger.LogInformation("[UserViewModel] Profile loaded: {Username}", Username);
                 }
