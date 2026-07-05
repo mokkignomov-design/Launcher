@@ -63,6 +63,14 @@ namespace Runia.ViewModels.Main
             PlayerCount = si.Online;
             ImageUrl = si.ImageUrl ?? string.Empty;
             FullDescription = si.FullDesc ?? string.Empty;
+            // Если сервер уже содержит список модов от API - используем его сразу,
+            // иначе попытаемся подгрузить дополнительные детали из локального appsettings.json
+            Mods.Clear();
+            if (si.Mods != null && si.Mods.Count > 0)
+            {
+                foreach (var m in si.Mods) Mods.Add(m ?? string.Empty);
+            }
+
             LoadDetailsForServer(si);
         }
 
@@ -103,22 +111,23 @@ namespace Runia.ViewModels.Main
                 {
                     var text = File.ReadAllText(path);
                     using var doc = JsonDocument.Parse(text);
-                    if (doc.RootElement.TryGetProperty("Servers", out var serversEl))
+                // JSON from backend uses lowercase property names (e.g. "servers", "title", "mods").
+                if (doc.RootElement.TryGetProperty("servers", out var serversEl))
                     {
                         foreach (var el in serversEl.EnumerateArray())
                         {
-                            var title = el.GetProperty("Title").GetString();
+                            var title = el.GetProperty("title").GetString();
                             if (string.Equals(title, si.Title, StringComparison.OrdinalIgnoreCase) ||
-                                (el.TryGetProperty("Id", out var idEl) && idEl.GetString() == si.Id.ToString()))
+                                (el.TryGetProperty("id", out var idEl) && idEl.GetString() == si.Id.ToString()))
                             {
-                                if (el.TryGetProperty("FullDesc", out var full)) FullDescription = full.GetString() ?? string.Empty;
-                                if (el.TryGetProperty(nameof(Runia.Domain.Models.ServerPack.ImageUrl), out var icon)) ImageUrl = icon.GetString() ?? string.Empty;
-                                if (el.TryGetProperty(nameof(Mods), out var modsEl))
+                                if (el.TryGetProperty("fullDesc", out var full)) FullDescription = full.GetString() ?? string.Empty;
+                                if (el.TryGetProperty("imageUrl", out var icon)) ImageUrl = icon.GetString() ?? string.Empty;
+                                if (el.TryGetProperty("mods", out var modsEl))
                                 {
                                     Mods = [];
                                     foreach (var m in modsEl.EnumerateArray()) Mods.Add(m.GetString() ?? string.Empty);
                                 }
-                                if (el.TryGetProperty("Online", out var onlineEl)) PlayerCount = onlineEl.GetInt32();
+                                if (el.TryGetProperty("online", out var onlineEl)) PlayerCount = onlineEl.GetInt32();
                                 return;
                             }
                         }

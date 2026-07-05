@@ -7,16 +7,16 @@
              mc:Ignorable="d" x:Name="Root">
 
     <UserControl.Resources>
-        <Style x:Key="NavEmojiStyle" TargetType="TextBlock">
+            <Style x:Key="NavEmojiStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="Width" Value="24"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Foreground" Value="{DynamicResource SidebarIconBrush}"/>
             <Setter Property="Opacity" Value="0.6"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                    <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
                     <Setter Property="Opacity" Value="1"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -27,7 +27,7 @@
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="10,0,0,0"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="Opacity" Value="0.6"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
@@ -39,7 +39,7 @@
         <Style x:Key="NavRadioStyle" TargetType="RadioButton">
             <Setter Property="Height" Value="50"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#D0D0D0"/>
+            <Setter Property="Foreground" Value="{DynamicResource GrayBrush}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
@@ -49,7 +49,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border x:Name="ActiveIndicator" 
-                                    Background="{StaticResource PrimaryBrush}" 
+                                    Background="{DynamicResource PrimaryBrush}" 
                                     Width="4" CornerRadius="0,2,2,0" 
                                     Visibility="Collapsed"/>
                             <ContentPresenter Grid.Column="1" VerticalAlignment="Center"/>
@@ -57,12 +57,12 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible"/>
-                                <Setter Property="Background" Value="#15FFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="{DynamicResource NavPanelBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#0AFFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="{DynamicResource LoadingPanelBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -92,11 +92,11 @@
             <Grid Grid.Row="0">
                 <StackPanel x:Name="LogoCenterPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock x:Name="RTextBlock" Text="R" FontSize="36" FontWeight="Bold" FontFamily="/assets/Fonts/#Gabriela" 
-                               Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource PrimaryBrush}" VerticalAlignment="Center"/>
                     <TextBlock x:Name="UniaTextBlock" Text="unia" FontSize="36" FontWeight="Bold" FontFamily="/assets/Fonts/#Gabriela" 
                                VerticalAlignment="Center" Opacity="0" Width="0"
-                               Foreground="{StaticResource PrimaryBrush}"/>
-                </StackPanel>
+                               Foreground="{DynamicResource PrimaryBrush}"/>
+                        </StackPanel>
             </Grid>
 
             <RadioButton x:Name="ProfileRadio" Grid.Row="1" Style="{StaticResource NavRadioStyle}" GroupName="SidebarGroup" Margin="0,0,0,20" IsChecked="{Binding IsProfileSelected, Mode=TwoWay}">
