@@ -1,0 +1,105 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <!-- Disable SDK auto-generation of assembly attributes to avoid duplicate attribute errors
+         (there are explicit assembly attributes or tooling that generate them elsewhere) -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>assets\Icons\Icon_v2.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\Servers\**" />
+    <Compile Remove="Services\Temp\**" />
+    <Compile Remove="Ui\ViewModels\**" />
+    <Compile Remove="Updater\**" />
+    <EmbeddedResource Remove="Services\Servers\**" />
+    <EmbeddedResource Remove="Services\Temp\**" />
+    <EmbeddedResource Remove="Ui\ViewModels\**" />
+    <EmbeddedResource Remove="Updater\**" />
+    <None Remove="Services\Servers\**" />
+    <None Remove="Services\Temp\**" />
+    <None Remove="Ui\ViewModels\**" />
+    <None Remove="Updater\**" />
+    <Page Remove="Services\Servers\**" />
+    <Page Remove="Services\Temp\**" />
+    <Page Remove="Ui\ViewModels\**" />
+    <Page Remove="Updater\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="assets\Fonts\Hypereffort.otf" />
+    <None Remove="assets\Icons\discord.png" />
+    <None Remove="assets\Icons\telegramm.png" />
+    <None Remove="assets\Images\Back.png" />
+    <None Remove="assets\Images\Back2.png" />
+    <None Remove="assets\Images\news_default.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="assets\Themes\CommonResource.xaml" />
+    <Page Remove="assets\Themes\DarkTheme.xaml" />
+    <Page Remove="assets\Themes\LightTheme.xaml" />
+    <Page Remove="assets\Themes\Styles.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\Fonts\Gabriela.ttf" />
+    <Resource Include="assets\Fonts\Hypereffort.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CmlLib.Core" Version="4.0.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="assets\Icons\discord.png" />
+    <Resource Include="assets\Icons\telegramm.png" />
+    <Resource Include="assets\Images\Back.png" />
+    <Resource Include="assets\Images\Back2.png" />
+    <Resource Include="assets\Images\news_default.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="assets\Themes\DarkTheme.xaml" />
+    <Resource Include="assets\Themes\LightTheme.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ViewModels\Profile\" />
+    <Folder Include="Doc\" />
+  </ItemGroup>
+
+</Project>

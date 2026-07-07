@@ -1,0 +1,106 @@
+Third-Party Licenses - Runia Launcher v1.0.0-beta.1
+
+This product includes software developed by third parties, listed below.
+All licenses are compatible with the MIT License of Runia Launcher.
+
+================================================================================
+
+1. CmlLib.Core
+   License: MIT License
+   Project: https://github.com/CmlLib/CmlLib.Core
+   Copyright: © CmlLib Contributors
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction...
+
+================================================================================
+
+2. Microsoft.Extensions (Hosting, DependencyInjection, Http, Logging)
+   License: MIT License
+   Project: https://github.com/dotnet/runtime
+   Copyright: © Microsoft Corporation
+
+   The MIT License applies to all Microsoft.Extensions.* packages:
+   - Microsoft.Extensions.Hosting - v10.0.9
+   - Microsoft.Extensions.DependencyInjection - v10.0.9
+   - Microsoft.Extensions.Http - v10.0.9
+   - Microsoft.Extensions.Logging - v10.0.9
+   - Microsoft.Extensions.Logging.Console - v10.0.9
+   - Microsoft.Extensions.Logging.Debug - v10.0.9
+
+================================================================================
+
+3. Newtonsoft.Json (Json.NET)
+   License: MIT License
+   Project: https://github.com/JamesNK/Newtonsoft.Json
+   Copyright: © James Newton-King
+   Version: 13.0.4
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction...
+
+================================================================================
+
+4. Microsoft.Xaml.Behaviors.Wpf
+   License: MIT License
+   Project: https://github.com/Microsoft/XamlBehaviors
+   Copyright: © Microsoft Corporation
+   Version: 1.1.142
+
+   Provides XAML behaviors for WPF applications.
+
+================================================================================
+
+5. CommunityToolkit.Mvvm
+   License: MIT License
+   Project: https://github.com/CommunityToolkit/dotnet
+   Version: 8.4.2
+
+   Community Toolkit for .NET - MVVM source generators and helpers.
+
+================================================================================
+
+6. Ookii.Dialogs.Wpf
+   License: BSD 3-Clause License
+   Project: https://github.com/ookii-dialogs/ookii-dialogs-wpf
+   Version: 5.0.1
+
+   Provides Windows dialogs for file/folder selection in WPF.
+
+   BSD 3-Clause License:
+   Copyright (c) 2009-2023, Sven Erik Matzen
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+   ...
+
+================================================================================
+
+7. Velopack
+   License: MIT License
+   Project: https://github.com/velopack/velopack
+   Version: 1.2.0
+
+   Self-updating framework for .NET desktop applications.
+
+================================================================================
+
+SUMMARY OF LICENSES:
+- MIT License: CmlLib.Core, Microsoft.Extensions.*, Newtonsoft.Json, 
+  Microsoft.Xaml.Behaviors.Wpf, CommunityToolkit.Mvvm, Velopack
+- BSD 3-Clause: Ookii.Dialogs.Wpf
+
+All licenses are permissive and compatible with open-source distribution.
+
+For complete license texts, visit the respective project repositories listed above.
+
+================================================================================
+
+Runia Launcher itself is licensed under the MIT License.
+See LICENSE file in the root directory for details.
+
+Generated: January 2025
+Version: 1.0.0-beta.1

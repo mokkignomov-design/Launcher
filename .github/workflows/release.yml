@@ -1,0 +1,62 @@
+name: Build and Publish Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore "Runia.sln"
+
+      - name: Build
+        run: dotnet publish Runia/Updater -c Release -o ./artifacts/updater
+
+      - name: Create release assets list
+        run: |
+          ls -la ./artifacts
+
+      - name: Upload Updater to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/updater/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror to S3
+        if: ${{ secrets.AWS_S3_BUCKET != '' }}
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync artifacts to S3
+        if: ${{ secrets.AWS_S3_BUCKET != '' }}
+        run: |
+          aws s3 sync ./artifacts s3://${{ secrets.AWS_S3_BUCKET }}/runia/releases --acl private
+
+      - name: Mirror to VPS via SCP
+        if: ${{ secrets.VPS_HOST != '' }}
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "./artifacts/*"
+          target: ${{ secrets.VPS_PATH }}
+
+      - name: Done
+        run: echo "Release artifacts published and mirrored"
