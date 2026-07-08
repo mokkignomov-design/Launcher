@@ -153,7 +153,8 @@ namespace Runia
             }
             catch { }
 
-            // Попытка автологина: если есть сохранённые токены (Remember=true), загрузим их и попробуем обновить
+            _ = CheckForUpdatesAsync();
+
             try
             {
                 var auth = Services.GetRequiredService<AuthService>();
@@ -162,9 +163,7 @@ namespace Runia
                 var loadResult = await auth.LoadAndRefreshTokensAsync().ConfigureAwait(false);
                 if (loadResult == AuthResult.Success)
                 {
-                    // Попробуем обновить токен сразу при старте
                     var refreshed = await auth.RefreshTokenAsync().ConfigureAwait(false);
-                    // Поскольку мы в ConfigureAwait(false), переключаемся обратно на UI-поток для работы с окнами
                     await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
                         if (refreshed)
@@ -191,6 +190,44 @@ namespace Runia
                     loginWindow.DataContext = Services.GetRequiredService<LoginWindowViewModel>();
                     loginWindow.Show();
                 });
+            }
+        }
+
+        /// <summary>
+        /// Проверяет наличие обновлений в фоновом потоке
+        /// </summary>
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                var updaterPath = Path.Combine(AppContext.BaseDirectory, "Updater.exe");
+
+                if (!File.Exists(updaterPath))
+                {
+                    Debug.WriteLine("[App] Updater.exe не найден");
+                    return;
+                }
+
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = updaterPath,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(processInfo))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit(TimeSpan.FromSeconds(30));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[App] Ошибка при проверке обновлений: {ex.Message}");
             }
         }
 

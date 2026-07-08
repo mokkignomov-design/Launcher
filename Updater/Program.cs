@@ -1,210 +1,229 @@
+using System;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Runia.Updater;
 
+/// <summary>
+/// Runia Launcher Updater - простой апдейтер с поддержкой GitHub Releases
+/// Скачивает и применяет обновления лаунчера
+/// </summary>
 internal static class Program
 {
-    private static readonly string PrimaryBase = "https://raw.githubusercontent.com/your-org/your-repo/main/updates"; // заменить
-    private static readonly string FallbackBase = "https://your-vps.example.com/updates"; // заменить
+    // GitHub репозиторий
+    private const string GitHubOrg = "mokkignomov-design";
+    private const string GitHubRepo = "Launcher";
+    private const string GitHubApiUrl = "https://api.github.com/repos/mokkignomov-design/Launcher/releases/latest";
+
+    // Локальное хранилище обновлений
+    private static readonly string UpdateCachePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "Runia",
+        "updates"
+    );
 
     private static async Task<int> Main(string[] args)
     {
         try
         {
-            // Подкоманда apply: Updater.exe apply <sourceFile> <targetExe> [restartArgs]
+            // Режим 1: Применение скачанного обновления
             if (args.Length > 0 && string.Equals(args[0], "apply", StringComparison.OrdinalIgnoreCase))
             {
-                if (args.Length < 3)
-                {
-                    Console.Error.WriteLine("Usage: updater apply <sourceFile> <targetExe> [restartArgs]");
-                    return 2;
-                }
-
-                var src = args[1];
-                var target = args[2];
-                var restartArgs = args.Length >= 4 ? args[3] : string.Empty;
-                return await ApplyAndRestartAsync(src, target, restartArgs);
+                return await ApplyUpdate(args);
             }
 
-            using var http = new HttpClient();
-            var baseUrl = await ChooseBaseUrl(http);
+            // Режим 2: Проверка и скачивание обновлений (фоновый режим)
+            await CheckAndDownloadUpdates();
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Updater Error] {ex.Message}");
+            return 1;
+        }
+    }
 
-            string assetUrl = string.Empty;
-            string expectedSha = string.Empty;
+    /// <summary>
+    /// Проверяет наличие новых версий на GitHub и скачивает их
+    /// </summary>
+    private static async Task CheckAndDownloadUpdates()
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Runia-Launcher");
 
-            if (args.Length >= 2)
+            Console.WriteLine("[Updater] Проверка обновлений...");
+
+            // Получаем информацию о последнем релизе
+            var response = await httpClient.GetAsync(GitHubApiUrl);
+            if (!response.IsSuccessStatusCode)
             {
-                // arg0 = assetUrl, arg1 = expectedSha
-                assetUrl = args[0];
-                expectedSha = args[1];
+                Console.WriteLine($"[Updater] Не удалось получить информацию о релизе: {response.StatusCode}");
+                return;
             }
-            else
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            // Извлекаем версию и ссылку на скачивание
+            var tagName = root.GetProperty("tag_name").GetString();
+            var version = tagName?.TrimStart('v') ?? "0.0.0";
+
+            Console.WriteLine($"[Updater] Найдена версия: {version}");
+
+            // Получаем первый asset (обычно это .exe или .zip)
+            var assets = root.GetProperty("assets");
+            if (assets.GetArrayLength() == 0)
             {
-                var metaUrl = new Uri(new Uri(baseUrl), "latest.json");
-                try
-                {
-                    var meta = await http.GetStringAsync(metaUrl);
-                    using var doc = JsonDocument.Parse(meta);
-                    if (doc.RootElement.TryGetProperty("assetUrl", out var a)) assetUrl = a.GetString() ?? string.Empty;
-                    if (doc.RootElement.TryGetProperty("sha256", out var s)) expectedSha = s.GetString() ?? string.Empty;
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Не удалось получить metadata: {ex.Message}");
-                    return 2;
-                }
+                Console.WriteLine("[Updater] В релизе нет артефактов");
+                return;
             }
 
-            if (string.IsNullOrEmpty(assetUrl))
+            var exeAsset = FindAsset(assets, ".exe");
+            if (exeAsset == null)
             {
-                Console.Error.WriteLine("assetUrl не задан");
+                exeAsset = FindAsset(assets, ".zip");
+            }
+
+            if (exeAsset == null)
+            {
+                Console.WriteLine("[Updater] Не найден исполняемый файл или архив");
+                return;
+            }
+
+            var downloadUrl = exeAsset.Value.GetProperty("browser_download_url").GetString();
+            var fileName = exeAsset.Value.GetProperty("name").GetString();
+
+            if (downloadUrl == null || fileName == null)
+            {
+                Console.WriteLine("[Updater] Не удалось получить URL скачивания");
+                return;
+            }
+
+            // Проверяем, не скачали ли уже эту версию
+            Directory.CreateDirectory(UpdateCachePath);
+            var cachedFilePath = Path.Combine(UpdateCachePath, fileName);
+
+            if (File.Exists(cachedFilePath))
+            {
+                Console.WriteLine($"[Updater] Обновление {fileName} уже закэшировано");
+                return;
+            }
+
+            // Скачиваем обновление
+            Console.WriteLine($"[Updater] Скачивание {fileName}...");
+            var updateData = await httpClient.GetByteArrayAsync(downloadUrl);
+
+            File.WriteAllBytes(cachedFilePath, updateData);
+            Console.WriteLine($"[Updater] Обновление сохранено: {cachedFilePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Updater] Ошибка при проверке обновлений: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Применяет скачанное обновление, заменяя основной exe
+    /// </summary>
+    private static async Task<int> ApplyUpdate(string[] args)
+    {
+        if (args.Length < 2)
+        {
+            Console.Error.WriteLine("Usage: Updater.exe apply <targetExe> [sourceExe]");
+            return 2;
+        }
+
+        string targetExe = args[1];
+        string sourceExe = args.Length > 2 ? args[2] : null!;
+
+        try
+        {
+            if (!File.Exists(targetExe))
+            {
+                Console.Error.WriteLine($"[Updater] Целевой файл не найден: {targetExe}");
                 return 3;
             }
 
-            var updatesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Runia", "updates");
-            Directory.CreateDirectory(updatesDir);
-
-            var fileName = Path.GetFileName(new Uri(assetUrl).LocalPath);
-            var destPath = Path.Combine(updatesDir, fileName);
-
-            Console.WriteLine($"Скачивание {assetUrl} -> {destPath}");
-            await DownloadFileAsync(http, assetUrl, destPath);
-
-            if (!string.IsNullOrEmpty(expectedSha))
+            // Если источник не указан, пытаемся найти его в кэше
+            if (sourceExe == null || !File.Exists(sourceExe))
             {
-                var actual = ComputeSha256(destPath);
-                Console.WriteLine($"Ожидаемый SHA256: {expectedSha}");
-                Console.WriteLine($"Фактический SHA256:  {actual}");
-                if (!string.Equals(actual, expectedSha, StringComparison.OrdinalIgnoreCase))
+                sourceExe = FindLatestUpdateInCache();
+                if (sourceExe == null)
                 {
-                    Console.Error.WriteLine("SHA256 не совпадает, отмена");
-                    return 4;
+                    Console.Error.WriteLine("[Updater] Исходный файл обновления не найден");
+                    return 3;
                 }
             }
 
-            Console.WriteLine("Файл загружен и проверен. Чтобы применить, запустите: updater apply <source> <targetExe> [args]");
+            Console.WriteLine($"[Updater] Применяю обновление...");
+            Console.WriteLine($"  Источник: {sourceExe}");
+            Console.WriteLine($"  Целевой: {targetExe}");
+
+            // Создаём резервную копию
+            var backupPath = targetExe + ".backup";
+            File.Copy(targetExe, backupPath, true);
+            Console.WriteLine($"[Updater] Резервная копия создана: {backupPath}");
+
+            // Заменяем основной файл
+            File.Copy(sourceExe, targetExe, true);
+            Console.WriteLine("[Updater] Обновление применено успешно!");
+
             return 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Unhandled: {ex}");
-            return 10;
+            Console.Error.WriteLine($"[Updater] Ошибка при применении обновления: {ex.Message}");
+            return 1;
         }
     }
 
-    private static async Task<int> ApplyAndRestartAsync(string sourceFile, string targetExe, string restartArgs)
+    /// <summary>
+    /// Найти asset по расширению файла
+    /// </summary>
+    private static JsonElement? FindAsset(JsonElement assets, string extension)
     {
-        if (!File.Exists(sourceFile))
+        foreach (var asset in assets.EnumerateArray())
         {
-            Console.Error.WriteLine($"Source file not found: {sourceFile}");
-            return 5;
-        }
-
-        // Ждём, пока целевой процесс не завершится
-        var procName = Path.GetFileNameWithoutExtension(targetExe);
-        Console.WriteLine($"Ожидание завершения процессов: {procName}");
-        var waited = TryWaitForProcessExit(procName, TimeSpan.FromSeconds(30));
-        if (!waited)
-        {
-            Console.Error.WriteLine("Процесс не завершился в ожидание, отмена");
-            return 6;
-        }
-
-        try
-        {
-            ReplaceExecutable(sourceFile, targetExe);
-            Console.WriteLine("Замена выполнена. Перезапуск приложения...");
-            RestartTarget(targetExe, restartArgs);
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Ошибка при применении обновления: {ex}");
-            return 7;
-        }
-    }
-
-    private static bool TryWaitForProcessExit(string processName, TimeSpan timeout)
-    {
-        var sw = Stopwatch.StartNew();
-        while (sw.Elapsed < timeout)
-        {
-            var procs = Process.GetProcessesByName(processName);
-            if (procs.Length == 0) return true;
-            Thread.Sleep(500);
-        }
-        return false;
-    }
-
-    private static void ReplaceExecutable(string sourceFile, string targetExe)
-    {
-        var backup = targetExe + ".bak";
-
-        // Если целевой файл существует, используем File.Replace (atomic на NTFS), иначе просто перемещаем
-        if (File.Exists(targetExe))
-        {
-            // File.Replace требует, чтобы целевой файл существовал
-            File.Replace(sourceFile, targetExe, backup, ignoreMetadataErrors: true);
-            // Удаляем backup
-            if (File.Exists(backup)) File.Delete(backup);
-        }
-        else
-        {
-            File.Move(sourceFile, targetExe);
-        }
-    }
-
-    private static void RestartTarget(string targetExe, string args)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = targetExe,
-            Arguments = args,
-            UseShellExecute = false,
-            WorkingDirectory = Path.GetDirectoryName(targetExe) ?? string.Empty,
-        };
-        Process.Start(psi);
-    }
-
-    private static async Task<string> ChooseBaseUrl(HttpClient http)
-    {
-        using var cts = new CancellationTokenSource(2000);
-        try
-        {
-            var req = new HttpRequestMessage(HttpMethod.Head, "https://github.com");
-            var resp = await http.SendAsync(req, cts.Token);
-            if (resp.IsSuccessStatusCode)
+            var name = asset.GetProperty("name").GetString() ?? "";
+            if (name.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("Primary (GitHub) доступен, используем основной URL");
-                return PrimaryBase;
+                return asset;
             }
         }
-        catch
+        return null;
+    }
+
+    /// <summary>
+    /// Найти последнее обновление в локальном кэше
+    /// </summary>
+    private static string? FindLatestUpdateInCache()
+    {
+        if (!Directory.Exists(UpdateCachePath))
         {
+            return null;
         }
 
-        Console.WriteLine("Primary недоступен, переключаемся на fallback");
-        return FallbackBase;
-    }
+        var files = Directory.GetFiles(UpdateCachePath, "*.exe");
+        if (files.Length == 0)
+        {
+            files = Directory.GetFiles(UpdateCachePath, "*.zip");
+        }
 
-    private static async Task DownloadFileAsync(HttpClient http, string url, string destPath)
-    {
-        using var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-        resp.EnsureSuccessStatusCode();
-        await using var src = await resp.Content.ReadAsStreamAsync();
-        await using var dst = File.Open(destPath, FileMode.Create, FileAccess.Write, FileShare.None);
-        await src.CopyToAsync(dst);
-    }
+        if (files.Length == 0)
+        {
+            return null;
+        }
 
-    private static string ComputeSha256(string filePath)
-    {
-        using var sha = SHA256.Create();
-        using var stream = File.OpenRead(filePath);
-        var hash = sha.ComputeHash(stream);
-        return string.Concat(hash.Select(b => b.ToString("x2")));
+        // Возвращаем самый новый файл
+        return files
+            .OrderByDescending(f => new FileInfo(f).LastWriteTime)
+            .FirstOrDefault();
     }
 }

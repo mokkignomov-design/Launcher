@@ -5,5 +5,7 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<LangVersion>12</LangVersion>
+	<Version>1.0.0-beta.1</Version>
+	<PublishProfile>SelfContained</PublishProfile>
   </PropertyGroup>
 </Project>
