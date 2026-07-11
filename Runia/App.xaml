@@ -45,6 +45,9 @@
             <!-- Глобальные ресурсы -->
             <FontFamily x:Key="MainLogoFont">/assets/Fonts/#Gabriela</FontFamily>
 
+            <!-- Конвертеры -->
+            <local:BoolToInvertBoolConverter x:Key="BoolToInvertBoolConverter"/>
+
             <!-- Глобальное сглаживание текста -->
             <Style TargetType="TextBlock">
                 <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
