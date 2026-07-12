@@ -95,12 +95,7 @@ namespace Runia.ViewModels.Auth
 
         private bool CanLogin() => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
 
-        [RelayCommand]
-        private void LoginDebug()
-        {
-            Debug.WriteLine("[LoginDebugCommand] Called - bypassing auth");
-            _dialog.ShowMainWindow();
-        }
+       
 
         [RelayCommand]
         private void Register()

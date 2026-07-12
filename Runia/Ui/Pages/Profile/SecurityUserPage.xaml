@@ -18,7 +18,7 @@
 
             <StackPanel Grid.Column="0">
 
-                <TextBlock Text="ДАННЫЕ АККАУНТА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="ДАННЫЕ АККАУНТА(не работает)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
@@ -37,86 +37,126 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="СМЕНА ПАРОЛЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="СМЕНА ПАРОЛЯ(тоже не работает :D)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}">
                     <StackPanel>
-                        <TextBlock Text="Текущий пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
-                        <Border CornerRadius="8"
-                Background="{DynamicResource InputPanelBackgroundBrush}"
-                BorderBrush="{DynamicResource InputPanelBorderBrush}" 
-                BorderThickness="1"
-                Margin="0,0,0,12">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                        <TextBlock Text="СМЕНА ПАРОЛЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
 
-                                <TextBlock Text="🔒" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0"
-                           Foreground="{DynamicResource PlaceholderBrush}"/>
+                        <Border Style="{DynamicResource ModernCard}">
+                            <StackPanel>
 
-                                <Grid Grid.Column="1">
-                                    <PasswordBox x:Name="CurrentPasswordBox" 
-                                 Background="Transparent"
-                                 Foreground="{DynamicResource TextBrush}" 
-                                 BorderThickness="0"
-                                 Padding="0,10,10,10" 
-                                 VerticalContentAlignment="Center"
-                                 CaretBrush="{DynamicResource PrimaryBrush}"
-                             >  </PasswordBox>
-                                    <TextBlock x:Name="CurrentPasswordPlaceholder" Text="Введите текущий пароль" IsHitTestVisible="False"
-                               Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center"
-                               Margin="2,0,10,0">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding CurrentPassword}" Value="">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding CurrentPassword}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
-                            </Grid>
+                                <Border Style="{DynamicResource InputFieldBorder}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Text="🔒" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
+
+                                        <Grid Grid.Column="1">
+                                            <PasswordBox x:Name="CurrentPasswordBox" Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"/>
+
+                                            <TextBlock Text="Текущий пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ElementName=CurrentPasswordBox, Path=Password}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource InputFieldBorder}" Margin="0,12,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Text="🔑" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
+
+                                        <Grid Grid.Column="1">
+                                            <TextBox Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"
+                                 Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                            <TextBlock Text="Новый пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding NewPassword}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource InputFieldBorder}" Margin="0,12,0,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Text="🔑" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
+
+                                        <Grid Grid.Column="1">
+                                            <TextBox Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"
+                                 Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"/>
+
+                                            <TextBlock Text="Повторите новый пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding ConfirmPassword}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <Button Content="ОБНОВИТЬ ПАРОЛЬ" 
+                    Command="{Binding ChangePasswordCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}" 
+                    Height="40" HorizontalAlignment="Stretch"/>
+
+                                <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
+                                    <ProgressBar.Style>
+                                        <Style TargetType="ProgressBar">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsChangingPassword}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ProgressBar.Style>
+                                </ProgressBar>
+                            </StackPanel>
                         </Border>
-
-                        <TextBlock Text="Новый пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
-                        <TextBox Style="{DynamicResource ModernTextBox}" Tag="Минимум 8 символов" 
-                 Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" Height="40"/>
-
-                        <TextBlock Text="Повторите пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
-                        <TextBox Style="{DynamicResource ModernTextBox}" Tag="Повторите новый пароль"
-                 Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,20" Height="40"/>
-
-                        <Button Content="ОБНОВИТЬ ПАРОЛЬ" 
-                Command="{Binding ChangePasswordCommand}"
-                Style="{StaticResource PrimaryButtonStyle}" 
-                Height="40" HorizontalAlignment="Stretch"/>
-
-                        <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
-                            <ProgressBar.Style>
-                                <Style TargetType="ProgressBar">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsChangingPassword}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ProgressBar.Style>
-                        </ProgressBar>
                     </StackPanel>
                 </Border>
             </StackPanel>
 
             <StackPanel Grid.Column="2">
 
-                <TextBlock Text="АКТИВНЫЕ СЕССИИ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="АКТИВНЫЕ СЕССИИ(не работает,временно)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">

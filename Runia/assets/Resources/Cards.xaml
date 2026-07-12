@@ -8,6 +8,7 @@
         <Setter Property="CornerRadius" Value="{StaticResource CardCornerRadius}"/>
         <Setter Property="Margin" Value="0,0,0,12"/>
         <Setter Property="Padding" Value="{StaticResource CardPadding}"/>
+        
         <!-- Смещаем через RenderTransform, чтобы не дергать соседей -->
         <Setter Property="RenderTransform">
             <Setter.Value>
@@ -136,16 +137,11 @@
     <!-- CHARACTER CARD STYLE -->
     <Style x:Key="CharacterCardStyle" TargetType="Border">
         <!-- Используем полупрозрачный фон для глубины -->
-        <Setter Property="Background" Value="#1A1A1B"/>
+        <Setter Property="Background" Value="{DynamicResource ServerCardBackgroundBrush}"/>
         <Setter Property="CornerRadius" Value="18"/>
         <Setter Property="BorderThickness" Value="1"/>
         <!-- Тонкая грань, чтобы карточка не сливалась с фоном -->
-        <Setter Property="BorderBrush" Value="#252526"/>
         <Setter Property="Padding" Value="0"/>
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.2" Color="Black"/>
-            </Setter.Value>
-        </Setter>
+    
     </Style>
 </ResourceDictionary>

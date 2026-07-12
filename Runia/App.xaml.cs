@@ -16,6 +16,8 @@ using Runia.ViewModels.Main;
 using Runia.ViewModels.Windows;
 using System.Windows;
 using Runia.Services.Core.Infrastructure.Network.Clients;
+using Velopack;
+using Velopack.Sources;
 
 namespace Runia
 {
@@ -26,6 +28,9 @@ namespace Runia
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+          
+            VelopackApp.Build().Run();
+
             base.OnStartup(e);
 
             _host = Host.CreateDefaultBuilder()
@@ -116,7 +121,7 @@ namespace Runia
 
                     // Main ViewModels
                     services.AddTransient<Runia.ViewModels.Main.ServerDetailsViewModel>();
-                    services.AddSingleton<Runia.ViewModels.Main.ServerViewModel>(); 
+                    services.AddSingleton<Runia.ViewModels.Main.ServerViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SettingsViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SidebarViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.UserViewModel>();
@@ -153,6 +158,7 @@ namespace Runia
             }
             catch { }
 
+            // Запускаем фоновую проверку обновлений через Velopack
             _ = CheckForUpdatesAsync();
 
             try
@@ -194,40 +200,39 @@ namespace Runia
         }
 
         /// <summary>
-        /// Проверяет наличие обновлений в фоновом потоке
+        /// Проверяет наличие обновлений на GitHub через нативный движок Velopack в фоновом потоке
         /// </summary>
         private async Task CheckForUpdatesAsync()
         {
             try
             {
-                var updaterPath = Path.Combine(AppContext.BaseDirectory, "Updater.exe");
+                Debug.WriteLine("[App] Velopack: Проверка обновлений на GitHub...");
 
-                if (!File.Exists(updaterPath))
+                // Подключаемся к твоему репозиторию
+                var source = new GithubSource("https://github.com/mokkignomov-design/Launcher", null, false);
+                var mgr = new UpdateManager(source);
+
+                // Проверяем, есть ли новая версия
+                var newVersion = await mgr.CheckForUpdatesAsync();
+                if (newVersion == null)
                 {
-                    Debug.WriteLine("[App] Updater.exe не найден");
+                    Debug.WriteLine("[App] Velopack: Установлена актуальная версия.");
                     return;
                 }
 
-                var processInfo = new ProcessStartInfo
-                {
-                    FileName = updaterPath,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false,
-                    CreateNoWindow = true
-                };
+                Debug.WriteLine($"[App] Velopack: Найдена новая версия {newVersion.TargetFullRelease.Version}. Скачиваю...");
 
-                using (var process = Process.Start(processInfo))
-                {
-                    if (process != null)
-                    {
-                        process.WaitForExit(TimeSpan.FromSeconds(30));
-                    }
-                }
+                // Скачиваем обновление в фоне
+                await mgr.DownloadUpdatesAsync(newVersion);
+
+                Debug.WriteLine("[App] Velopack: Обновление скачано! Применяю и перезапускаю лаунчер...");
+
+                // Автоматически закрываем лаунчер, применяем патч и запускаем обновленную версию!
+                mgr.ApplyUpdatesAndRestart(newVersion);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[App] Ошибка при проверке обновлений: {ex.Message}");
+                Debug.WriteLine($"[App] Velopack Update Error: {ex.Message}");
             }
         }
 

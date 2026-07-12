@@ -187,7 +187,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
                     <Grid Background="Transparent">
-                        <Border x:Name="TrackBackground" Background="{TemplateBinding Background}" Height="6" CornerRadius="3" VerticalAlignment="Center"/>
+                        <Border x:Name="TrackBackground" Background="{DynamicResource GrayBrush}" Height="6" CornerRadius="3" VerticalAlignment="Center"/>
                         <Track x:Name="PART_Track">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Command="{x:Static Slider.DecreaseLarge}">
@@ -208,7 +208,14 @@
                                 <Thumb Width="16" Height="16">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Ellipse Fill="{DynamicResource TextBrush}" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2"/>
+                                            <Ellipse Fill="{DynamicResource SidebarIconBrush}" 
+                         Stroke="{DynamicResource AccentBrush}" 
+                         StrokeThickness="2"
+                         RenderTransformOrigin="2,2">
+                                                <Ellipse.RenderTransform>
+                                                    <TranslateTransform X="-3" />
+                                                </Ellipse.RenderTransform>
+                                            </Ellipse>
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>

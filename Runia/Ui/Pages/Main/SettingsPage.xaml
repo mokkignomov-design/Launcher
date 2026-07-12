@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:Runia.ViewModels.Main"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000">
-   <Grid Margin="40">
+    <Grid Margin="40">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -43,88 +43,6 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="ПОВЕДЕНИЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
-                <Border Style="{DynamicResource ModernCard}">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,15">
-                            <StackPanel>
-                                <TextBlock Text="Консоль Forge" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="Показывать логи при запуске" Style="{DynamicResource HintText}"/>
-                            </StackPanel>
-                            <ToggleButton IsChecked="{Binding ShowConsole}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
-                        </Grid>
-                        <Grid>
-                            <StackPanel>
-                                <TextBlock Text="Авто-закрытие" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="Закрывать лаунчер после старта" Style="{DynamicResource HintText}"/>
-                            </StackPanel>
-                            <ToggleButton IsChecked="{Binding AutoClose}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-            <StackPanel Grid.Column="2">
-                <TextBlock Text="ОБНОВЛЕНИЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
-                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
-                    <StackPanel>
-                        <TextBlock Text="Текущая версия" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                            <TextBlock Text="v" Foreground="{DynamicResource GrayBrush}"/>
-                            <TextBlock Text="{Binding CurrentVersion}" Foreground="{DynamicResource TextBrush}" FontWeight="Bold"/>
-                        </StackPanel>
-
-                        <Grid Margin="0,0,0,15">
-                            <StackPanel>
-                                <TextBlock Text="Автообновление" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="Проверять обновления при запуске" Style="{DynamicResource HintText}"/>
-                            </StackPanel>
-                            <ToggleButton IsChecked="{Binding AutoUpdate}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
-                        </Grid>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Проверить обновления" Style="{DynamicResource HeaderText}"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                    <TextBlock Text="Версия: " Style="{DynamicResource HintText}"/>
-                                    <TextBlock Text="v" Foreground="{DynamicResource GrayBrush}"/>
-                                    <TextBlock Text="{Binding LatestVersion}" Foreground="#FFD4AF37" FontWeight="Bold"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <Button Grid.Column="1"
-                                    Command="{Binding CheckForUpdatesCommand}" 
-                                    Content="Проверить"
-                                    IsEnabled="{Binding IsCheckingUpdates, Converter={StaticResource BoolToInvertBoolConverter}}"
-                                    Style="{DynamicResource PrimaryButtonStyle}" 
-                                    Height="35" Width="85" Margin="10,0,0,0"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <TextBlock Text="РЕСУРСЫ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
-                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,15">
-                            <StackPanel>
-                                <TextBlock Text="Выделяемая память" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="{Binding ElementName=MemorySlider, Path=Value, StringFormat={}Выделено: {0} ГБ}" Style="{DynamicResource HintText}"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Slider x:Name="MemorySlider" 
-                                Minimum="2" 
-                                Maximum="16" 
-                                TickFrequency="1"
-                                IsSnapToTickEnabled="True"
-                                Style="{DynamicResource ModernSliderStyle}"
-                                Value="{Binding RamAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
-                </Border>
-
                 <TextBlock Text="СИСТЕМА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}">
                     <StackPanel>
@@ -151,6 +69,87 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="ОБНОВЛЕНИЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                      
+
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Автообновление" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Проверять обновления при запуске" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding AutoUpdate}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Проверить обновления" Style="{DynamicResource HeaderText}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <TextBlock Text="Версия: " Style="{DynamicResource HintText}"/>
+                                    <TextBlock Text=" " Foreground="{DynamicResource GrayBrush}"/>
+                                    <TextBlock Text="{Binding LatestVersion}" Foreground="{DynamicResource PrimaryBrush}" FontWeight="Bold" Margin="0,1,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Command="{Binding CheckForUpdatesCommand}" 
+                                    Content="Проверить"
+                                    Typography.Capitals="Normal"
+                                    IsEnabled="{Binding IsCheckingUpdates, Converter={StaticResource BoolToInvertBoolConverter}}"
+                                    Style="{DynamicResource PrimaryButtonStyle}" 
+                                    Height="35" Width="105" Padding="10,0" Margin="10,0,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="РЕСУРСЫ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Выделяемая память" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="{Binding ElementName=MemorySlider, Path=Value, StringFormat={}Выделено: {0} ГБ}" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Slider x:Name="MemorySlider" 
+                                Minimum="2" 
+                                Maximum="16" 
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                Style="{DynamicResource ModernSliderStyle}"
+                                Value="{Binding RamAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="ПОВЕДЕНИЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <StackPanel>
+                                <TextBlock Text="Консоль Forge" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Показывать логи при запуске" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding ShowConsole}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="Авто-закрытие" Style="{DynamicResource HeaderText}"/>
+                                <TextBlock Text="Закрывать лаунчер после старта" Style="{DynamicResource HintText}"/>
+                            </StackPanel>
+                            <ToggleButton IsChecked="{Binding AutoClose}" HorizontalAlignment="Right" Style="{DynamicResource iOSToggleStyle}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </Grid>
     </Grid>
