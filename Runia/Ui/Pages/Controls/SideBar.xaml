@@ -106,7 +106,7 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
                 <Grid Width="230" HorizontalAlignment="Left">
-                    <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                         <TextBlock Text="🕵️" Style="{StaticResource NavEmojiStyle}"/>
                         <TextBlock x:Name="ProfileLabel" Text="Личный кабинет" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                     </StackPanel>
@@ -121,7 +121,7 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <Grid Width="230" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                             <TextBlock Text="🏡" Style="{StaticResource NavEmojiStyle}"/>
                             <TextBlock x:Name="HomeLabel" Text="Новости" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                         </StackPanel>
@@ -135,7 +135,7 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <Grid Width="230" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                             <TextBlock Text="🖥" Style="{StaticResource NavEmojiStyle}"/>
                             <TextBlock x:Name="ServersLabel" Text="Серверы" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                         </StackPanel>
@@ -149,7 +149,7 @@
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
                     <Grid Width="230" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                             <TextBlock Text="⚙️" Style="{StaticResource NavEmojiStyle}"/>
                             <TextBlock x:Name="SettingsLabel" Text="Настройки" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                         </StackPanel>
@@ -164,7 +164,7 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
                 <Grid Width="230" HorizontalAlignment="Left">
-                    <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="18,0,0,0">
                         <TextBlock Text="🚪" Style="{StaticResource NavEmojiStyle}"/>
                         <TextBlock x:Name="LogoutLabel" Text="Выйти из аккаунта" Style="{StaticResource NavTextStyle}" Opacity="0"/>
                     </StackPanel>

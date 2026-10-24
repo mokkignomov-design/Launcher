@@ -23,7 +23,7 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
-                <TextBlock Text="ИНТЕРФЕЙС" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="Интерфейс" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
@@ -43,7 +43,7 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="СИСТЕМА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="Система" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}">
                     <StackPanel>
                         <TextBlock Text="JVM-аргументы" Style="{DynamicResource HeaderText}" Margin="0,0,0,8"/>
@@ -72,7 +72,7 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2">
-                <TextBlock Text="ОБНОВЛЕНИЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="Обновления" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                       
@@ -110,7 +110,7 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="РЕСУРСЫ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="Ресурсы" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
@@ -130,7 +130,7 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="ПОВЕДЕНИЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="Поведение" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">

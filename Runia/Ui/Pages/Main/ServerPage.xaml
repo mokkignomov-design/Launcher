@@ -10,7 +10,7 @@
 
     <Border Background="{DynamicResource ServerBackGround}" 
             CornerRadius="20" 
-            Padding="15,15,8,15" 
+            Padding="15,30,8,15" 
             ClipToBounds="True">
 
         <Grid>

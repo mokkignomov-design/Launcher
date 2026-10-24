@@ -76,7 +76,7 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Style="{StaticResource NewsCardStyle}" Width="340" Margin="10,10,7,10" VerticalAlignment="Top">
+                        <Border Style="{StaticResource NewsCardStyle}" Width="320"   Margin="10,10,7,10" VerticalAlignment="Top">
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" 
                                               Command="{Binding DataContext.ViewNewsDetailsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" 

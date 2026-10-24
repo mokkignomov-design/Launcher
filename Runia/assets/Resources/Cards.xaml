@@ -55,7 +55,7 @@
 
     <!-- 3. CONTENT & NAVIGATION CARDS -->
     <Style x:Key="NewsCardStyle" TargetType="Border" BasedOn="{StaticResource ModernCard}">
-        <Setter Property="MinHeight" Value="380"/>
+        <Setter Property="MinHeight" Value="360"/>
         <Setter Property="Margin" Value="8"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="Cursor" Value="Hand"/>
