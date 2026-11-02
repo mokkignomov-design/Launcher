@@ -1,39 +1,58 @@
-﻿name: Build and Release
+﻿name: Velopack Release
 
 on:
   push:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
-  build-and-release:
+  release:
     runs-on: windows-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: "9.0.x"
-    
-    - name: Restore
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    
-    - name: Publish Runia
-      run: dotnet publish Runia/Runia.csproj -c Release -r win-x64 -p:PublishSingleFile=true -p:SelfContained=true --output publish/app
-    
-    - name: Publish Updater
-      run: dotnet publish Updater/Updater.csproj -c Release -r win-x64 -p:PublishSingleFile=true --output publish
-    
-    - name: Copy docs
-      run: |
-        Copy-Item "Doc/RELEASE_NOTES.md" -Destination "publish/"
-        Copy-Item "THIRD_PARTY_LICENSES.txt" -Destination "publish/"
-        Copy-Item "publish/app/Runia.exe" -Destination "publish/" -Force
-    
-    - name: Archive
-      run: Compress-Archive -Path "publish/*" -DestinationPath "Release.zip" -Force
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore and build
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+
+      - name: Publish Runia
+        run: dotnet publish Runia/Runia.csproj -c Release -r win-x64 -p:PublishSingleFile=true -p:SelfContained=true -p:IncludeNativeLibrariesForSelfExtract=true --output artifacts/app
+
+      - name: Install Velopack CLI
+        run: dotnet tool install --global vpk --version 1.2.0
+
+      - name: Pack Velopack release
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          vpk pack `
+            --packId Runia `
+            --packVersion $version `
+            --packDir artifacts/app `
+            --outputDir artifacts/velopack `
+            --packAuthors Mokkignomov `
+            --packTitle "Runia Launcher" `
+            --mainExe Runia.exe `
+            --runtime win-x64
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Runia Launcher ${{ github.ref_name }}
+          body_path: Doc/RELEASE_NOTES.md
+          files: artifacts/velopack/*
+          fail_on_unmatched_files: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

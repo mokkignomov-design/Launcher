@@ -14,7 +14,7 @@
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>true</UseWPF>
 
-		<Version>1.0.3</Version>
+		<Version>1.0.4</Version>
 		<Authors>Mokkignomov</Authors>
 		<Company>Runia</Company>
 		<Product>Runia Launcher</Product>
@@ -22,18 +22,22 @@
 	
 	
   <ItemGroup>
+    <Compile Remove="Services\Network\**" />
     <Compile Remove="Services\Servers\**" />
     <Compile Remove="Services\Temp\**" />
     <Compile Remove="Ui\ViewModels\**" />
     <Compile Remove="ViewModels\Profile\**" />
+    <EmbeddedResource Remove="Services\Network\**" />
     <EmbeddedResource Remove="Services\Servers\**" />
     <EmbeddedResource Remove="Services\Temp\**" />
     <EmbeddedResource Remove="Ui\ViewModels\**" />
     <EmbeddedResource Remove="ViewModels\Profile\**" />
+    <None Remove="Services\Network\**" />
     <None Remove="Services\Servers\**" />
     <None Remove="Services\Temp\**" />
     <None Remove="Ui\ViewModels\**" />
     <None Remove="ViewModels\Profile\**" />
+    <Page Remove="Services\Network\**" />
     <Page Remove="Services\Servers\**" />
     <Page Remove="Services\Temp\**" />
     <Page Remove="Ui\ViewModels\**" />
@@ -112,7 +116,6 @@
 
   <ItemGroup>
     <Folder Include="Services\Core\Infrastructure\WPF\Converters\" />
-    <Folder Include="Services\Network\" />
   </ItemGroup>
 
 </Project>
