@@ -3,8 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behaviors="clr-namespace:Runia.Services.Core.Infrastructure.WPF.Behaviors"
              mc:Ignorable="d" d:DesignWidth="1000" Height="590">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
 
     <Grid Margin="10">
       
@@ -16,159 +20,318 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0">
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
 
-                <TextBlock Text="ДАННЫЕ АККАУНТА(не работает)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="ДАННЫЕ АККАУНТА" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Основная почта" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="{Binding Email}" Style="{DynamicResource HintText}"/>
+                                <TextBlock Text="{Binding PrimaryEmail}" Style="{DynamicResource HintText}"/>
                             </StackPanel>
+                            <Button Grid.Column="1"
+                                    Content="ИЗМЕНИТЬ"
+                                    Command="{Binding StartEmailChangeCommand}"
+                                    Style="{DynamicResource GhostButtonStyle}"
+                                    Height="32"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="10"/>
                         </Grid>
-                        <Grid>
-                            <StackPanel>
-                                <TextBlock Text="Регистрационная почта (OGE)" Style="{DynamicResource HeaderText}" Foreground="{StaticResource PrimaryBrush}"/>
-                                <TextBlock Text="{Binding NewEmail, FallbackValue='—'}" Style="{DynamicResource HintText}"/>
-                                <TextBlock Text="Используется для восстановления при взломе" FontSize="10" Opacity="0.6" Foreground="{DynamicResource GrayBrush}"/>
-                            </StackPanel>
-                        </Grid>
+                        <TextBlock Text="{Binding AccountError}"
+                                   Style="{DynamicResource HintText}"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="СМЕНА ПАРОЛЯ(тоже не работает :D)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="{Binding EmailChangeError}"
+                           Foreground="#FFE57373"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,8">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding EmailChangeError}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding EmailChangeMessage}"
+                           Foreground="{DynamicResource PrimaryBrush}"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,8">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding EmailChangeMessage}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <Border Style="{DynamicResource ModernCard}"
+                        Margin="0,0,0,20"
+                        Visibility="{Binding IsEmailChangeFormOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="СМЕНА ОСНОВНОЙ ПОЧТЫ"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource GrayBrush}"
+                                   Margin="0,0,0,12"/>
+
+                        <StackPanel Visibility="{Binding IsEmailChangeDetailsStep, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="Новый адрес" Style="{DynamicResource HeaderText}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding NewEmail, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     Height="42"
+                                     Padding="12,0"
+                                     CaretBrush="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="Для подтверждения потребуется текущий пароль."
+                                       Style="{DynamicResource HintText}"
+                                       Margin="0,8,0,12"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="Текущий пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,6"/>
+                            <PasswordBox Style="{StaticResource PasswordBoxStyle}"
+                                         Height="42"
+                                         Padding="12,0"
+                                         CaretBrush="{DynamicResource PrimaryBrush}"
+                                         behaviors:PasswordBoxAttachmentBehavior.BoundPassword="{Binding CurrentPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Content="ОТПРАВИТЬ КОД"
+                                    Command="{Binding RequestEmailChangeCodeCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsEmailChangeConfirmationStep, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="Код подтверждения"
+                                       Style="{DynamicResource HeaderText}"
+                                       Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding EmailChangeCode, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     Height="42"
+                                     Padding="12,0"
+                                     MaxLength="6"
+                                     CaretBrush="{DynamicResource PrimaryBrush}"/>
+                            <Button Content="ПОДТВЕРДИТЬ НОВУЮ ПОЧТУ"
+                                    Command="{Binding ConfirmEmailChangeCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0"/>
+                            <Button Content="ИЗМЕНИТЬ АДРЕС"
+                                    Command="{Binding BackToEmailChangeDetailsCommand}"
+                                    Style="{DynamicResource GhostButtonStyle}"
+                                    Height="34"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,6,0,0"/>
+                        </StackPanel>
+
+                        <Button Content="ОТМЕНА"
+                                Command="{Binding CancelEmailChangeCommand}"
+                                Style="{DynamicResource GhostButtonStyle}"
+                                Height="34"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,6,0,0"/>
+
+                        <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
+                            <ProgressBar.Style>
+                                <Style TargetType="ProgressBar">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRequestingEmailChange}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsConfirmingEmailChange}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ProgressBar.Style>
+                        </ProgressBar>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="СБРОС ПАРОЛЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}">
                     <StackPanel>
-                        <TextBlock Text="СМЕНА ПАРОЛЯ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                        <TextBlock Text="Сброс проходит в три шага: почта, код из письма и новый пароль."
+                                   FontSize="12"
+                                   Foreground="{DynamicResource GrayBrush}"
+                                   Margin="5,0,0,14"
+                                   TextWrapping="Wrap"/>
 
-                        <Border Style="{DynamicResource ModernCard}">
-                            <StackPanel>
-
-                                <Border Style="{DynamicResource InputFieldBorder}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="🔒" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
-
-                                        <Grid Grid.Column="1">
-                                            <PasswordBox x:Name="CurrentPasswordBox" Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"/>
-
-                                            <TextBlock Text="Текущий пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ElementName=CurrentPasswordBox, Path=Password}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </Grid>
-                                </Border>
-
-                                <Border Style="{DynamicResource InputFieldBorder}" Margin="0,12,0,0">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="🔑" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
-
-                                        <Grid Grid.Column="1">
-                                            <TextBox Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"
-                                 Text="{Binding NewPassword, UpdateSourceTrigger=PropertyChanged}"/>
-
-                                            <TextBlock Text="Новый пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding NewPassword}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </Grid>
-                                </Border>
-
-                                <Border Style="{DynamicResource InputFieldBorder}" Margin="0,12,0,12">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="🔑" FontSize="16" VerticalAlignment="Center" Margin="12,0,8,0" Foreground="{DynamicResource PlaceholderBrush}"/>
-
-                                        <Grid Grid.Column="1">
-                                            <TextBox Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,10,10,10" VerticalContentAlignment="Center" CaretBrush="{DynamicResource PrimaryBrush}"
-                                 Text="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}"/>
-
-                                            <TextBlock Text="Повторите новый пароль" IsHitTestVisible="False" Foreground="{DynamicResource PlaceholderBrush}" VerticalAlignment="Center" Margin="2,0,10,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding ConfirmPassword}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </Grid>
-                                </Border>
-
-                                <Button Content="ОБНОВИТЬ ПАРОЛЬ" 
-                    Command="{Binding ChangePasswordCommand}"
-                    Style="{StaticResource PrimaryButtonStyle}" 
-                    Height="40" HorizontalAlignment="Stretch"/>
-
-                                <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
-                                    <ProgressBar.Style>
-                                        <Style TargetType="ProgressBar">
+                        <TextBlock Text="{Binding PasswordResetError}"
+                                   Foreground="#FFE57373"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,10">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PasswordResetError}" Value="">
                                             <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsChangingPassword}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ProgressBar.Style>
-                                </ProgressBar>
-                            </StackPanel>
-                        </Border>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="{Binding PasswordResetMessage}"
+                                   Foreground="{DynamicResource PrimaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,10">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PasswordResetMessage}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <StackPanel Visibility="{Binding IsPasswordResetEmailStep, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="ШАГ 1 ИЗ 3" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="На какую почту отправить код?" Style="{DynamicResource HeaderText}" Margin="0,0,0,10"/>
+                            <TextBox Text="{Binding ResetEmail, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     Height="42"
+                                     Padding="12,0"
+                                     CaretBrush="{DynamicResource PrimaryBrush}"/>
+                            <Button Content="ПОЛУЧИТЬ КОД"
+                                    Command="{Binding RequestResetCodeCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsPasswordResetCodeStep, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="ШАГ 2 ИЗ 3" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding ResetEmail, StringFormat='Введите код из письма, отправленного на {0}.'}"
+                                       Style="{DynamicResource HintText}"
+                                       Margin="0,0,0,12"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="Код подтверждения" Style="{DynamicResource HeaderText}" Margin="0,0,0,6"/>
+                            <TextBox Text="{Binding ResetCode, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     Height="42"
+                                     Padding="12,0"
+                                     MaxLength="32"
+                                     CaretBrush="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="Сервер проверит код при завершении сброса пароля."
+                                       Style="{DynamicResource HintText}"
+                                       Margin="0,8,0,0"
+                                       TextWrapping="Wrap"/>
+                            <Button Content="ДАЛЕЕ"
+                                    Command="{Binding ContinueToNewPasswordCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0"/>
+                            <Button Content="ИЗМЕНИТЬ ПОЧТУ"
+                                    Command="{Binding BackToResetEmailCommand}"
+                                    Style="{DynamicResource GhostButtonStyle}"
+                                    Height="34"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,6,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsPasswordResetPasswordStep, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="ШАГ 3 ИЗ 3" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Придумайте новый пароль и повторите его для проверки."
+                                       Style="{DynamicResource HintText}"
+                                       Margin="0,0,0,12"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="Новый пароль" Style="{DynamicResource HeaderText}" Margin="0,0,0,6"/>
+                            <PasswordBox Style="{StaticResource PasswordBoxStyle}"
+                                         Height="42"
+                                         Padding="12,0"
+                                         CaretBrush="{DynamicResource PrimaryBrush}"
+                                         behaviors:PasswordBoxAttachmentBehavior.BoundPassword="{Binding NewPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Повторите новый пароль" Style="{DynamicResource HeaderText}" Margin="0,12,0,6"/>
+                            <PasswordBox Style="{StaticResource PasswordBoxStyle}"
+                                         Height="42"
+                                         Padding="12,0"
+                                         CaretBrush="{DynamicResource PrimaryBrush}"
+                                         behaviors:PasswordBoxAttachmentBehavior.BoundPassword="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Content="СБРОСИТЬ ПАРОЛЬ"
+                                    Command="{Binding ChangePasswordCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0"/>
+                            <Button Content="НАЗАД К ВВОДУ КОДА"
+                                    Command="{Binding BackToResetCodeCommand}"
+                                    Style="{DynamicResource GhostButtonStyle}"
+                                    Height="34"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,6,0,0"/>
+                        </StackPanel>
+
+                        <ProgressBar IsIndeterminate="True" Height="2" Margin="0,10,0,0" Foreground="{DynamicResource PrimaryBrush}">
+                            <ProgressBar.Style>
+                                <Style TargetType="ProgressBar">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChangingPassword}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsRequestingResetCode}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ProgressBar.Style>
+                        </ProgressBar>
                     </StackPanel>
                 </Border>
             </StackPanel>
+            </ScrollViewer>
 
-            <StackPanel Grid.Column="2">
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
 
-                <TextBlock Text="АКТИВНЫЕ СЕССИИ(не работает,временно)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
+                <TextBlock Text="АКТИВНЫЕ СЕССИИ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
                 <Border Style="{DynamicResource ModernCard}" Margin="0,0,0,20">
                     <StackPanel>
                         <Grid Margin="0,0,0,15">
                             <StackPanel>
                                 <TextBlock Text="Управление доступом" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="{Binding ActiveSessions, StringFormat='Всего активных устройств: {0}'}" Style="{DynamicResource HintText}"/>
+                                <TextBlock Text="{Binding ActiveSessions, StringFormat='Всего активных устройств: {0}'}"
+                                           Style="{DynamicResource HintText}"
+                                           Visibility="{Binding IsSessionCountAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             </StackPanel>
                             <Button Content="ВЫЙТИ СО ВСЕХ" 
                                         Command="{Binding LogoutAllDevicesCommand}"
                                         Style="{DynamicResource PrimaryButtonStyle}" 
                                         Height="30" Padding="15,0" HorizontalAlignment="Right" FontSize="10"/>
                         </Grid>
+
+                        <ProgressBar IsIndeterminate="True"
+                                     Height="2"
+                                     Margin="0,0,0,8"
+                                     Foreground="{DynamicResource PrimaryBrush}"
+                                     Visibility="{Binding IsLoadingSessions, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <TextBlock Text="{Binding SessionsError}"
+                                   Style="{DynamicResource HintText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,6"/>
 
                         <ItemsControl ItemsSource="{Binding Sessions}">
                             <ItemsControl.ItemTemplate>
@@ -178,6 +341,7 @@
                                             <StackPanel>
                                                 <TextBlock Text="{Binding DeviceName}" FontWeight="SemiBold" Foreground="White" FontSize="13"/>
                                                 <TextBlock Text="{Binding Location, StringFormat='📍 {0}'}" FontSize="11" Opacity="0.6"/>
+                                                <TextBlock Text="{Binding LastActive, StringFormat='Последняя активность: {0}'}" FontSize="10" Opacity="0.6"/>
                                             </StackPanel>
                                             <Button Content="Завершить" 
                                                         HorizontalAlignment="Right"
@@ -193,20 +357,8 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="СЛУЖЕБНОЕ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource GrayBrush}" Margin="5,0,0,10"/>
-                <Border Style="{DynamicResource ModernCard}">
-                    <StackPanel>
-                        <Grid>
-                            <StackPanel>
-                                <TextBlock Text="Очистка данных" Style="{DynamicResource HeaderText}"/>
-                                <TextBlock Text="Удалить все токены и выйти из аккаунта" Style="{DynamicResource HintText}"/>
-                            </StackPanel>
-                            <Button Content="СБРОС" Style="{StaticResource PrimaryButtonStyle}" 
-                                        Background="#44FF4B4B" Height="35" Width="100" HorizontalAlignment="Right"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
             </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 

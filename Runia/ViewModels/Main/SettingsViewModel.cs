@@ -35,7 +35,7 @@ namespace Runia.ViewModels.Main
         [ObservableProperty] private string latestVersion = "Проверка...";
         [ObservableProperty] private bool isCheckingUpdates = false;
         [ObservableProperty] private bool updateAvailable = false;
-        [ObservableProperty] private bool autoUpdate = true;
+        [ObservableProperty] private bool autoUpdate = Runia.Properties.Settings.Default.AutoUpdate;
 
         public SettingsViewModel() : this(null!) { }
 
@@ -71,12 +71,8 @@ namespace Runia.ViewModels.Main
         partial void OnJvmArgsChanged(string value) { Runia.Properties.Settings.Default.JvmArguments = value; Save(); }
         partial void OnAutoUpdateChanged(bool value)
         {
-            try
-            {
-                Runia.Properties.Settings.Default["AutoUpdate"] = value;
-                Save();
-            }
-            catch { }
+            Runia.Properties.Settings.Default.AutoUpdate = value;
+            Save();
         }
 
         public string ThemeModeText => IsDarkMode ? "Тёмная тема" : "Светлая тема";

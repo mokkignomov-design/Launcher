@@ -25,11 +25,8 @@ namespace Runia
     {
         public static IServiceProvider Services { get; private set; } = null!;
         private IHost? _host;
-        private readonly TaskCompletionSource<bool> _updateCheckCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource<bool> _launcherStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private Runia.Ui.Windows.UpdateStatusWindow? _updateStatusWindow;
-        private bool _launcherHasStarted;
-        private string? _currentUpdateStatus;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -129,7 +126,7 @@ namespace Runia
                     services.AddSingleton<Runia.ViewModels.Main.ServerViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SettingsViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SidebarViewModel>();
-                    services.AddTransient<Runia.ViewModels.Main.UserViewModel>();
+                    services.AddSingleton<Runia.ViewModels.Main.UserViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.SecurityUserViewModel>();
                     services.AddTransient<Runia.ViewModels.Main.PaymentHistoryUserViewModel>();
 
@@ -163,9 +160,8 @@ namespace Runia
             }
             catch { }
 
-            // Ждем проверку не дольше двух секунд; проверка и загрузка затем продолжаются в фоне.
+            // Проверка обновлений идет параллельно запуску лаунчера.
             _ = CheckForUpdatesAsync();
-            await Task.WhenAny(_updateCheckCompleted.Task, Task.Delay(TimeSpan.FromSeconds(2)));
 
             try
             {
@@ -213,12 +209,7 @@ namespace Runia
 
         private void MarkLauncherStarted()
         {
-            _launcherHasStarted = true;
             _launcherStarted.TrySetResult(true);
-            if (_currentUpdateStatus is not null)
-            {
-                SetUpdateStatus(_currentUpdateStatus);
-            }
         }
 
         private void SetUpdateStatus(string? status)
@@ -226,12 +217,6 @@ namespace Runia
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.BeginInvoke(() => SetUpdateStatus(status));
-                return;
-            }
-
-            _currentUpdateStatus = status;
-            if (!_launcherHasStarted)
-            {
                 return;
             }
 
@@ -251,39 +236,56 @@ namespace Runia
         }
 
         /// <summary>
-        /// Проверяет обновления сразу, а загрузку начинает только после появления окна лаунчера.
+        /// Проверяет обновления в фоне, не задерживая показ окна лаунчера.
         /// </summary>
         private async Task CheckForUpdatesAsync()
         {
-            SetUpdateStatus("Проверяем обновления...");
             try
             {
                 Debug.WriteLine("[App] Velopack: Проверка обновлений на GitHub...");
                 var source = new GithubSource("https://github.com/mokkignomov-design/Launcher", null, false);
                 var mgr = new UpdateManager(source);
                 var newVersion = await mgr.CheckForUpdatesAsync();
-                _updateCheckCompleted.TrySetResult(true);
 
                 if (newVersion is null)
                 {
                     Debug.WriteLine("[App] Velopack: Установлена актуальная версия.");
-                    SetUpdateStatus(null);
                     return;
                 }
 
                 Debug.WriteLine($"[App] Velopack: Найдена новая версия {newVersion.TargetFullRelease.Version}.");
                 await _launcherStarted.Task;
 
+                if (!Runia.Properties.Settings.Default.AutoUpdate)
+                {
+                    var shouldUpdate = await Dispatcher.InvokeAsync(() =>
+                    {
+                        var owner = Windows.OfType<Window>().FirstOrDefault(window => window.IsActive);
+                        var prompt = new Runia.Ui.Windows.UpdatePromptWindow(newVersion.TargetFullRelease.Version.ToString())
+                        {
+                            Owner = owner
+                        };
+
+                        return prompt.ShowDialog() == true;
+                    });
+
+                    if (!shouldUpdate)
+                    {
+                        Debug.WriteLine("[App] Velopack: Пользователь отложил обновление.");
+                        return;
+                    }
+                }
+
                 SetUpdateStatus("Загружаем обновление...");
                 await mgr.DownloadUpdatesAsync(newVersion);
 
-                Debug.WriteLine("[App] Velopack: Обновление скачано! Перезапускаю лаунчер...");
-                SetUpdateStatus("Устанавливаем обновление...");
+                Debug.WriteLine("[App] Velopack: Обновление скачано. Перезапуск через 3 секунды...");
+                SetUpdateStatus("Обновление готово. Лаунчер перезапустится через 3 секунды...");
+                await Task.Delay(TimeSpan.FromSeconds(3));
                 mgr.ApplyUpdatesAndRestart(newVersion);
             }
             catch (Exception ex)
             {
-                _updateCheckCompleted.TrySetResult(true);
                 SetUpdateStatus(null);
                 Debug.WriteLine($"[App] Velopack Update Error: {ex.Message}");
             }

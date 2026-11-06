@@ -206,45 +206,12 @@ public class UserClient(BaseApiService apiService, ITokenStore tokenStore, Auth.
         return ApiResult.Success();
     }
 
-    public async Task<ApiResult> ChangePasswordAsync(
-        string currentPassword,
-        string newPassword,
-        CancellationToken ct = default
-    )
-    {
-        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
-        {
-            return ApiResult.Failure("Пароли не могут быть пустыми");
-        }
-
-        var request = new ChangePasswordRequest { CurrentPassword = currentPassword, NewPassword = newPassword };
-        var result = await _apiService.PostAsync<ChangePasswordRequest, object>(
-            $"{BaseEndpoint}/me/change-password",
-            request,
-            ct
-        );
-
-        if (!result.IsSuccess)
-        {
-            return ApiResult.Failure(
-                result.ErrorMessage ?? "Ошибка при изменении пароля"
-            );
-        }
-
-        return ApiResult.Success();
-    }
 }
 
 public class UpdateUserProfileRequest
 {
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
-}
-
-public class ChangePasswordRequest
-{
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
 }
 
 public class UserFriend

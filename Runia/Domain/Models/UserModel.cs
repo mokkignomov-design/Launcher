@@ -10,8 +10,8 @@ namespace Runia.Domain.Models
         [JsonPropertyName("skinUrl")]
         public string? SkinUrl { get; set; }
 
-        [JsonPropertyName("email")]
-        public string Email { get; set; } = string.Empty;
+        [JsonPropertyName("primaryEmail")]
+        public string? PrimaryEmail { get; set; }
 
         [JsonPropertyName("balance")]
         public decimal Balance { get; set; }

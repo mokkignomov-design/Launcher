@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Runia.Services.Core.Infrastructure.Configuration;
 using Runia.Services.Core.Infrastructure.Network;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace Runia.Services.Auth
@@ -16,6 +17,7 @@ namespace Runia.Services.Auth
         private readonly IAppConfig _appConfig = _config;
         private readonly ILogger<AuthService> _log = _logger;
         private readonly SemaphoreSlim _refreshLock = new(1, 1);
+        private bool _rememberSession;
 
         public string? AccessToken { get; private set; }
         public string? RefreshToken { get; private set; }
@@ -67,6 +69,7 @@ namespace Runia.Services.Auth
             {
                 AccessToken = res.Data.AccessToken;
                 RefreshToken = res.Data.RefreshToken;
+                Debug.WriteLine($"[AuthService] API login succeeded. Access token returned: {!string.IsNullOrWhiteSpace(AccessToken)}; refresh token returned: {!string.IsNullOrWhiteSpace(RefreshToken)}.");
 
                 // Не сохраняем токены автоматически здесь — это делает вызывающий код
                 // (SaveTokens) в зависимости от флага "RememberMe".
@@ -159,6 +162,7 @@ namespace Runia.Services.Auth
                     // Если ранее токены были сохранены в хранилище (storedUsername != null), обновляем их
                     if (!string.IsNullOrWhiteSpace(storedUsername))
                     {
+                        _rememberSession = true;
                         await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, true, storedUsername);
                     }
 
@@ -180,17 +184,36 @@ namespace Runia.Services.Auth
 
             AccessToken = access;
             RefreshToken = refresh;
+            _rememberSession = true;
             CurrentUser = new UserProfile { Name = storedUsername ?? "Player", Rank = "Player", Balance = 0 };
             return AuthResult.Success;
         }
 
-        public async Task SaveTokensAsync(bool rememberMe) => await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, rememberMe, CurrentUser?.Name);
+        public async Task SaveTokensAsync(bool rememberMe)
+        {
+            _rememberSession = rememberMe;
+            await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, rememberMe, CurrentUser?.Name);
+        }
+
+        public async Task ReplaceTokensAsync(AuthResponse response)
+        {
+            ArgumentNullException.ThrowIfNull(response);
+            if (string.IsNullOrWhiteSpace(response.AccessToken) || string.IsNullOrWhiteSpace(response.RefreshToken))
+            {
+                throw new InvalidOperationException("The API returned an incomplete token pair.");
+            }
+
+            AccessToken = response.AccessToken;
+            RefreshToken = response.RefreshToken;
+            await _tokenStore.SaveTokensAsync(AccessToken, RefreshToken, _rememberSession, CurrentUser?.Name);
+        }
 
         public async Task LogoutAsync()
         {
 
             AccessToken = null;
             RefreshToken = null;
+            _rememberSession = false;
             CurrentUser = null;
             CachedServers = [];
 

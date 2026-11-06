@@ -9,7 +9,6 @@ using Runia.Services.Core.Navigation;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
@@ -52,12 +51,7 @@ namespace Runia.ViewModels.Main
 
         // --- Данные пользователя ---
         [ObservableProperty] private string username = string.Empty;
-        private string _email = string.Empty;
-        public string Email
-        {
-            get => _email;
-            set => SetProperty(ref _email, value);
-        }
+        [ObservableProperty] private string primaryEmail = string.Empty;
         [ObservableProperty] private string rank = string.Empty;
         [ObservableProperty] private string regDate = string.Empty;
         [ObservableProperty] private string balance = string.Empty;
@@ -66,6 +60,7 @@ namespace Runia.ViewModels.Main
         [ObservableProperty] private int deaths;
         [ObservableProperty] private string role = string.Empty;
         [ObservableProperty] private bool isLoadingProfile;
+        [ObservableProperty] private string profileLoadError = string.Empty;
         [ObservableProperty] private BitmapSource? skinSource;
         [ObservableProperty] private string skinPath = string.Empty;
         [ObservableProperty] private bool isLoadingSkin;
@@ -76,15 +71,15 @@ namespace Runia.ViewModels.Main
             try
             {
                 IsLoadingProfile = true;
+                ProfileLoadError = string.Empty;
 
                 var profileResult = await _userClient.GetCurrentUserProfileAsync();
-                _logger.LogDebug("[UserViewModel] profileResult: IsSuccess={IsSuccess}, Error={Error}, Data={Data}", profileResult.IsSuccess, profileResult.ErrorMessage, profileResult.Data == null ? "null" : JsonSerializer.Serialize(profileResult.Data));
+                string? profileSkinUrl = null;
                 if (profileResult.IsSuccess && profileResult.Data != null)
                 {
                     Username = profileResult.Data.Username;
-                    // сохраняем URL скина из профиля (опционально)
-                    var profileSkinUrl = profileResult.Data.SkinUrl;
-                    Email = profileResult.Data.Email ?? string.Empty;
+                    profileSkinUrl = profileResult.Data.SkinUrl;
+                    PrimaryEmail = profileResult.Data.PrimaryEmail ?? "Не указана";
                     Rank = profileResult.Data.Rank;
                     var donation = profileResult.Data.Stats?.DonationBalance ?? profileResult.Data.Balance;
                     Balance = donation.ToString("F2");
@@ -102,13 +97,15 @@ namespace Runia.ViewModels.Main
                 }
                 else
                 {
+                    ProfileLoadError = profileResult.ErrorMessage ?? "Не удалось загрузить профиль.";
                     _logger.LogWarning("[UserViewModel] Failed to load profile: {Error}", profileResult.ErrorMessage);
                 }
 
-                _ = InitializeSkinDataAsync();
+                _ = InitializeSkinDataAsync(profileSkinUrl);
             }
             catch (Exception ex)
             {
+                ProfileLoadError = "Не удалось загрузить профиль.";
                 _logger.LogError(ex, "[UserViewModel] Failed to initialize");
             }
             finally
@@ -117,22 +114,10 @@ namespace Runia.ViewModels.Main
             }
         }
 
-        private async Task InitializeSkinDataAsync()
+        private async Task InitializeSkinDataAsync(string? profileSkinUrl)
         {
             try
             {
-                // Сначала пытаемся получить скин по profile.SkinUrl, затем по отдельному endpoint
-                string? profileSkinUrl = null;
-                try
-                {
-                    var profileResult = await _userClient.GetCurrentUserProfileAsync();
-                    if (profileResult.IsSuccess && profileResult.Data != null)
-                    {
-                        profileSkinUrl = profileResult.Data.SkinUrl;
-                    }
-                }
-                catch { }
-
                 if (!string.IsNullOrWhiteSpace(profileSkinUrl))
                 {
                     var localPath = await _skinService.GetSkinAsync(Username, profileSkinUrl);

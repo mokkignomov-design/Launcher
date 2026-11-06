@@ -63,6 +63,15 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding ProfileLoadError}"
+                                   Style="{StaticResource HintText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,10"/>
+                        <ProgressBar IsIndeterminate="True"
+                                     Height="2"
+                                     Margin="0,0,0,10"
+                                     Foreground="{DynamicResource PrimaryBrush}"
+                                     Visibility="{Binding IsLoadingProfile, Converter={StaticResource BoolToVis}}"/>
 
                         <UniformGrid Columns="2" Rows="1" Margin="0,0,0,25">
                             <StackPanel Margin="0,0,10,0">
@@ -72,8 +81,11 @@
                                         <TextBlock Text="Никнейм" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
                                         <TextBlock Text="{Binding Username}" Style="{StaticResource HeaderText}" Margin="0,0,0,12"/>
 
-                                        <TextBlock Text="Email" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
-                                        <TextBlock Text="{Binding Email}" Style="{StaticResource HeaderText}" Margin="0,0,0,12"/>
+                                        <TextBlock Text="Основная почта" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding PrimaryEmail}"
+                                                   Style="{StaticResource HeaderText}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,12"/>
 
                                         <TextBlock Text="Дата регистрации" Style="{StaticResource HintText}" Margin="0,0,0,2"/>
                                         <TextBlock Text="{Binding RegDate}" Style="{StaticResource HeaderText}"/>

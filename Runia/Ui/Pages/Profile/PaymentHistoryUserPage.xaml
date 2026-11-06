@@ -3,17 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Runia.Ui.Pages.Profile"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <StackPanel Margin="30,20,30,30">
-            <TextBlock Text="ИСТОРИЯ ПЛАТЕЖЕЙ" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,30"/>
-
-            <StackPanel HorizontalAlignment="Left" Height="300" Width="500" Margin="10,0,0,0">
-                <TextBlock Text="В РАЗРАБОТКЕ" Style="{StaticResource HintText}" Margin="0,10" FontSize="16" FontWeight="Bold"/>
-             
+        <Border Style="{StaticResource ModernCard}"
+                Margin="30"
+                Padding="30"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MaxWidth="560">
+            <StackPanel>
+                <TextBlock Text="ИСТОРИЯ ПЛАТЕЖЕЙ"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource PrimaryBrush}"
+                           Margin="0,0,0,14"/>
+                <TextBlock Text="История чеков пока недоступна."
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextBrush}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="Платёжные чеки ещё не сохраняются на сервере, поэтому здесь пока нечего показывать."
+                           Style="{StaticResource HintText}"
+                           TextWrapping="Wrap"/>
             </StackPanel>
-        </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

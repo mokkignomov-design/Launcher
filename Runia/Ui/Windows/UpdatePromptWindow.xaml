@@ -1,0 +1,46 @@
+<Window x:Class="Runia.Ui.Windows.UpdatePromptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <Border Padding="26"
+            CornerRadius="18"
+            Background="{DynamicResource BackgroundBrush}"
+            BorderBrush="{DynamicResource AccentBrush}"
+            BorderThickness="1">
+        <StackPanel>
+            <TextBlock Text="ДОСТУПНО ОБНОВЛЕНИЕ"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" />
+            <TextBlock x:Name="VersionText"
+                       Margin="0,10,0,0"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextBrush}" />
+            <TextBlock Margin="0,8,0,22"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource GrayBrush}"
+                       Text="Установить обновление сейчас? Лаунчер скачает его и перезапустится." />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Позже"
+                        MinWidth="100"
+                        Margin="0,0,10,0"
+                        Style="{DynamicResource GhostButtonStyle}"
+                        IsCancel="True" />
+                <Button Content="Обновить"
+                        MinWidth="120"
+                        Style="{DynamicResource PrimaryButtonStyle}"
+                        IsDefault="True"
+                        Click="UpdateClick" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

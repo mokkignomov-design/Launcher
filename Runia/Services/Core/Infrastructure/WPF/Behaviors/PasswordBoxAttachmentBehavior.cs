@@ -54,7 +54,7 @@ namespace Runia.Services.Core.Infrastructure.WPF.Behaviors
                 try
                 {
                     string newPassword = (string)e.NewValue ?? string.Empty;
-                    Debug.WriteLine($"[PasswordBoxBehavior.BoundPasswordChanged] Setting password: {newPassword.Length} chars");
+                    Debug.WriteLine("[PasswordBoxBehavior] Updating password binding");
 
                     // Устанавливаем пароль в PasswordBox если он отличается
                     if (passwordBox.Password != newPassword)
@@ -83,7 +83,7 @@ namespace Runia.Services.Core.Infrastructure.WPF.Behaviors
             try
             {
                 string password = passwordBox.Password ?? string.Empty;
-                Debug.WriteLine($"[PasswordBoxBehavior.PasswordChanged] User typed: '{password}' ({password.Length} chars)");
+                Debug.WriteLine("[PasswordBoxBehavior] Password changed");
 
                 // Сначала пытаемся обновить привязку к нашему AttachedProperty
                 var binding = BindingOperations.GetBindingExpression(passwordBox, BoundPasswordProperty);

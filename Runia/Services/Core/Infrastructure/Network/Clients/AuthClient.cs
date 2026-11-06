@@ -1,5 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Runia.Services.Core.Infrastructure.Network.Clients;
 
@@ -99,8 +101,8 @@ public class AuthClient(BaseApiService apiService)
         }
 
         var request = new PasswordResetRequest { Email = email };
-        var result = await _apiService.PostAsync<PasswordResetRequest, object>(
-            $"{BaseEndpoint}/reset-password/request",
+        var result = await _apiService.PostAsync<PasswordResetRequest>(
+            $"{BaseEndpoint}/request-password-reset",
             request,
             ct
         );
@@ -116,22 +118,30 @@ public class AuthClient(BaseApiService apiService)
     }
 
     /// <summary>
-    /// Подтверждение восстановления пароля.
+    /// Подтверждение сброса пароля по коду из письма.
     /// </summary>
     public async Task<ApiResult> ConfirmPasswordResetAsync(
-        string token,
+        string email,
+        string code,
         string newPassword,
         CancellationToken ct = default
     )
     {
-        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+        if (string.IsNullOrWhiteSpace(email)
+            || string.IsNullOrWhiteSpace(code)
+            || string.IsNullOrWhiteSpace(newPassword))
         {
-            return ApiResult.Failure("Токен и пароль обязательны");
+            return ApiResult.Failure("Email, код подтверждения и новый пароль обязательны");
         }
 
-        var request = new ConfirmPasswordResetRequest { Token = token, NewPassword = newPassword };
-        var result = await _apiService.PostAsync<ConfirmPasswordResetRequest, object>(
-            $"{BaseEndpoint}/reset-password/confirm",
+        var request = new ConfirmPasswordResetRequest
+        {
+            Email = email,
+            Code = code,
+            NewPassword = newPassword
+        };
+        var result = await _apiService.PostAsync<ConfirmPasswordResetRequest>(
+            $"{BaseEndpoint}/reset-password",
             request,
             ct
         );
@@ -145,6 +155,184 @@ public class AuthClient(BaseApiService apiService)
 
         return ApiResult.Success();
     }
+
+    public async Task<ApiResult<ChangeEmailResponse>> RequestEmailChangeAsync(
+        string newEmail,
+        string currentPassword,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(newEmail) || string.IsNullOrWhiteSpace(currentPassword))
+        {
+            return ApiResult<ChangeEmailResponse>.Failure("Новая почта и текущий пароль обязательны.");
+        }
+
+        var request = new ChangeEmailRequest
+        {
+            NewEmail = newEmail.Trim(),
+            CurrentPassword = currentPassword
+        };
+        var result = await _apiService.PostAsync<ChangeEmailRequest, ChangeEmailResponse>(
+            $"{BaseEndpoint}/change-email",
+            request,
+            ct);
+
+        if (!result.IsSuccess)
+        {
+            return ApiResult<ChangeEmailResponse>.Failure(
+                ExtractApiErrorMessage(result.ErrorMessage, "Не удалось запросить смену почты."));
+        }
+
+        return result.Data is null
+            ? ApiResult<ChangeEmailResponse>.Failure("Сервер не подтвердил запрос смены почты.")
+            : ApiResult<ChangeEmailResponse>.Success(result.Data);
+    }
+
+    public async Task<ApiResult<Runia.Domain.Models.AuthResponse>> ConfirmEmailChangeAsync(
+        string code,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return ApiResult<Runia.Domain.Models.AuthResponse>.Failure("Введите код подтверждения.");
+        }
+
+        var request = new ConfirmEmailChangeRequest { Code = code.Trim() };
+        var result = await _apiService.PostAsync<ConfirmEmailChangeRequest, Runia.Domain.Models.AuthResponse>(
+            $"{BaseEndpoint}/confirm-email-change",
+            request,
+            ct);
+
+        if (!result.IsSuccess)
+        {
+            return ApiResult<Runia.Domain.Models.AuthResponse>.Failure(
+                ExtractApiErrorMessage(result.ErrorMessage, "Не удалось подтвердить новую почту."));
+        }
+
+        if (result.Data is null
+            || string.IsNullOrWhiteSpace(result.Data.AccessToken)
+            || string.IsNullOrWhiteSpace(result.Data.RefreshToken))
+        {
+            return ApiResult<Runia.Domain.Models.AuthResponse>.Failure(
+                "Сервер не вернул новую пару токенов для подтверждённой почты.");
+        }
+
+        return ApiResult<Runia.Domain.Models.AuthResponse>.Success(result.Data);
+    }
+
+    private static string ExtractApiErrorMessage(string? rawMessage, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(rawMessage))
+        {
+            return fallback;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(rawMessage);
+            var root = document.RootElement;
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                var message = ReadStringProperty(root, "message", "detail", "error");
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    return message;
+                }
+
+                var errors = ReadProperty(root, "errors");
+                if (errors is not null)
+                {
+                    var messages = new List<string>();
+                    CollectErrorMessages(errors.Value, messages);
+                    if (messages.Count > 0)
+                    {
+                        return string.Join(" ", messages);
+                    }
+                }
+
+                return ReadStringProperty(root, "title") ?? fallback;
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return rawMessage;
+    }
+
+    private static string? ReadStringProperty(JsonElement element, params string[] names)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (names.Contains(property.Name, StringComparer.OrdinalIgnoreCase)
+                && property.Value.ValueKind == JsonValueKind.String)
+            {
+                return property.Value.GetString();
+            }
+        }
+
+        return null;
+    }
+
+    private static JsonElement? ReadProperty(JsonElement element, string name)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return property.Value;
+            }
+        }
+
+        return null;
+    }
+
+    private static void CollectErrorMessages(JsonElement element, List<string> messages)
+    {
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            var message = element.GetString();
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                messages.Add(message);
+            }
+
+            return;
+        }
+
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                CollectErrorMessages(item, messages);
+            }
+
+            return;
+        }
+
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                CollectErrorMessages(property.Value, messages);
+            }
+        }
+    }
+
+    public Task<Result<JsonElement>> GetSessionsAsync(CancellationToken ct = default) =>
+        _apiService.GetAsync<JsonElement>($"{BaseEndpoint}/sessions", ct);
+
+    public Task<Result<bool>> RevokeSessionAsync(int sessionId, CancellationToken ct = default)
+    {
+        if (sessionId <= 0)
+        {
+            return Task.FromResult(Result<bool>.Fail(NetworkError.Unknown, "Некорректный идентификатор сессии"));
+        }
+
+        return _apiService.DeleteAsync($"{BaseEndpoint}/sessions/{sessionId}", ct);
+    }
+
+    public Task<Result<bool>> RevokeAllSessionsAsync(CancellationToken ct = default) =>
+        _apiService.PostAsync<object>($"{BaseEndpoint}/revoke-all", new { }, ct);
 
     /// <summary>
     /// Обновить токен доступа используя refresh token.
@@ -291,8 +479,30 @@ public class PasswordResetRequest
 /// </summary>
 public class ConfirmPasswordResetRequest
 {
-    public string Token { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
+}
+
+public class ChangeEmailRequest
+{
+    [JsonPropertyName("newEmail")]
+    public string NewEmail { get; set; } = string.Empty;
+
+    [JsonPropertyName("currentPassword")]
+    public string CurrentPassword { get; set; } = string.Empty;
+}
+
+public class ChangeEmailResponse
+{
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+}
+
+public class ConfirmEmailChangeRequest
+{
+    [JsonPropertyName("code")]
+    public string Code { get; set; } = string.Empty;
 }
 
 /// <summary>
